@@ -1,1 +1,7 @@
 numpy
+pandas
+scipy
+simanneal
+matplotlib
+scikit-learn
+pyyaml

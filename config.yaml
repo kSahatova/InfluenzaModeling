@@ -1,0 +1,21 @@
+data_path: 'data/input/incidence_strains_spb_2groups.csv'
+contact_matrix_path: 'data/input/contact_matrix_revised.p'
+
+city: 'Saint Petersburg'
+year: 2011
+percent_protected: 0.9
+
+INCIDENCE_TYPE: 'age-group'
+DATA_DETAIL: True
+MODEL_DETAIL: True
+GROUPING: False
+A_DETAIL: False
+PREDICT: False
+
+#age_groups: ['0-2', '3-6', '7-14', '15 и ст.']
+age_groups: ['0-14', '15 и ст.']
+strains: ['A(H1N1)pdm09', 'A(H3N2)', 'B']
+
+output_folder: 'output'
+
+
