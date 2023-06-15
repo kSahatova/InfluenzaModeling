@@ -1,5 +1,5 @@
 data_path: 'data/input/incidence_strains_spb_2groups.csv'
-contact_matrix_path: 'data/input/contact_matrix_revised.p'
+contact_matrix_path: 'data/input/contact_matrix_revised_v2.p'
 
 city: 'Saint Petersburg'
 year: 2011

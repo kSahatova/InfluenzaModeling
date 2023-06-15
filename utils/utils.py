@@ -13,7 +13,7 @@ import matplotlib.colors as mcolors
 from .experiment_setup import ExperimentalSetup
 
 
-OUTPUT_DIR = r'/BaroyanAgeMultistrain_v2/output/data'
+OUTPUT_DIR = r'output/data'
 SIMULATED_DATA_FILE = 'model_fit.csv'
 INCIDENCE_DATA_FILE = 'original_data.csv'
 CALIBRATION_DATA_FILE = 'calibration_data.csv'

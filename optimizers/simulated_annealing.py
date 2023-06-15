@@ -44,17 +44,25 @@ class InitValueFinder(Annealer):
         """Calculates the optimization function value"""
 
         exposed_list = lam_list = a_list = None
+        age_groups_num = len(self.age_groups)
+        hist_states_num = len(self.history_states)
 
         if self.incidence_type == "age-group":
-            exposed_list = [0] * len(self.history_states)
-            for i, history_state in enumerate(self.history_states):
-                if history_state[1] == "Not exposed":
-                    exposed_list[i] = 1.0 - self.state[i - 1]
-                else:
-                    exposed_list[i] = self.state[i]
+            '''exposed_list = [0] * age_group_nums * hist_states_num
+            for i in range(age_group_nums):
+                for h, state in enumerate(self.history_states):
+                    if state == "Not exposed":
+                        exposed_list[i*age_group_nums + h] = 1.0 - self.state[i - 1]
+                    else:
+                        exposed_list[i*age_group_nums + h] = self.state[i]'''
+            exposed_list = []
 
-            lam_idx = len(self.age_groups)
-            lam_list = [self.state[lam_idx]]
+            for item in self.state[:age_groups_num]:
+                exposed_list.append(item)
+                exposed_list.append(1 - item)
+
+            lam_idx = age_groups_num
+            lam_list = [self.state[age_groups_num]]
 
             if self.a_detail:
                 a_list = [0] * len(self.age_groups)

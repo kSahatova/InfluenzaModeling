@@ -32,8 +32,8 @@ def main():
     if not data_detail or not model_detail:
         incidence = 'total'
 
-    contact_matrix = [[6.528, 6.528], [6.528, 6.528]] \
-        if (len(age_groups) == 2) else get_contact_matrix(contact_matrix_path)
+    contact_matrix = get_contact_matrix(contact_matrix_path)
+    # [[6.528, 6.528], [6.528, 6.528]] if (len(age_groups) == 2) else
 
     epidemic_data, suspected_pop_size = prepare_calibration_data(path, incidence, age_groups, strains,
                                                                  exposure_year, percent_protected)
