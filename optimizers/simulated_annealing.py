@@ -43,79 +43,24 @@ class InitValueFinder(Annealer):
     def energy(self):
         """Calculates the optimization function value"""
 
-        exposed_list = lam_list = a_list = None
+        exposed_list,  lam_list,  a_list = [], [], []
         age_groups_num = len(self.age_groups)
-        hist_states_num = len(self.history_states)
 
-        if self.incidence_type == "age-group":
-            '''exposed_list = [0] * age_group_nums * hist_states_num
-            for i in range(age_group_nums):
-                for h, state in enumerate(self.history_states):
-                    if state == "Not exposed":
-                        exposed_list[i*age_group_nums + h] = 1.0 - self.state[i - 1]
-                    else:
-                        exposed_list[i*age_group_nums + h] = self.state[i]'''
-            exposed_list = []
+        for item in self.state[:age_groups_num]:
+            exposed_list.append([item, 1-item])
 
-            for item in self.state[:age_groups_num]:
-                exposed_list.append(item)
-                exposed_list.append(1 - item)
+        lam_idx = age_groups_num
+        lam_list = [self.state[age_groups_num]]
 
-            lam_idx = age_groups_num
-            lam_list = [self.state[age_groups_num]]
+        if self.a_detail:
+            a_list = [0] * len(self.age_groups)
+            a_idx = lam_idx + 1
+            for idx_j, age_group in enumerate(self.age_groups):  # 4 groups
+                a_list[idx_j] = self.state[a_idx + idx_j]
+        else:
+            a_idx = lam_idx + 1
+            a_list = [self.state[a_idx]]
 
-            if self.a_detail:
-                a_list = [0] * len(self.age_groups)
-                a_idx = lam_idx + 1
-                for idx_j, age_group in enumerate(self.age_groups):  # 4 groups
-                    a_list[idx_j] = self.state[a_idx + idx_j]
-            else:
-                a_idx = lam_idx + 1
-                a_list = [self.state[a_idx]]
-
-        '''exposed_list = lam_list = a_list = None
-
-        if self.incidence_type == "age-group":
-            exposed_list = [0] * len(self.history_states)
-            for i, history_state in enumerate(self.history_states):
-                if history_state[1] == "Not exposed":
-                    exposed_list[i] = 1.0 - self.state[i-1]
-                else:
-                    exposed_list[i] = self.state[i]
-
-            lam_idx = len(self.age_groups)
-            lam_list = [self.state[lam_idx]]
-
-            if self.a_detail:
-                a_list = [0] * len(self.age_groups)
-                a_idx = lam_idx + 1
-                for idx_j, age_group in enumerate(self.age_groups):  # 4 groups
-                    a_list[idx_j] = self.state[a_idx + idx_j]
-            else:
-                a_idx = lam_idx + 1
-                a_list = [self.state[a_idx]]'''
-        '''
-        if self.incidence_type == "age-group":
-            exposed_list = []
-            not_exposed = []
-            for i, item in enumerate(self.state[:len(self.age_groups)]):
-                exposed_list.append(item)
-                not_exposed.append(1-item)
-
-            exposed_list = exposed_list + not_exposed
-
-            lam_idx = len(self.age_groups)
-            lam_list = [self.state[lam_idx]]
-
-            if self.a_detail:
-                a_list = [0] * len(self.age_groups)
-                a_idx = lam_idx + 1
-                for idx_j, age_group in enumerate(self.age_groups):  # 4 groups
-                    a_list[idx_j] = self.state[a_idx + idx_j]
-            else:
-                a_idx = lam_idx + 1
-                a_list = [self.state[a_idx]]
-        '''
         dist2_list = self.energy_func(exposed_list, lam_list, a_list)
         dist2 = sum(dist2_list)
 

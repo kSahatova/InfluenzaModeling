@@ -14,7 +14,7 @@ def main():
     path = config['data_path']
     exposure_year = config['year']
     contact_matrix_path = config['contact_matrix_path']
-    percent_protected = config['percent_protected']
+    mu = config['percent_protected']
 
     age_groups = config['age_groups']
     strains = config['strains']
@@ -35,10 +35,9 @@ def main():
     contact_matrix = get_contact_matrix(contact_matrix_path)
     # [[6.528, 6.528], [6.528, 6.528]] if (len(age_groups) == 2) else
 
-    epidemic_data, suspected_pop_size = prepare_calibration_data(path, incidence, age_groups, strains,
-                                                                 exposure_year, percent_protected)
+    epidemic_data, pop_size = prepare_calibration_data(path, incidence, age_groups, strains, exposure_year)
 
-    experiment_setter = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, suspected_pop_size)
+    experiment_setter = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu)
     optimizer = experiment_setter.setup_experiment(epidemic_data, model_detail)
 
     opt_parameters = optimizer.fit_one_outbreak()

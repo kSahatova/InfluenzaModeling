@@ -12,9 +12,12 @@ class AgeModelOptimizer(BaseOptimizer):
         exposed_list = []  # list(k[:age_groups_num])
 
         for item in k[:age_groups_num]:
+            exposed_list.append([item, 1 - item])
+
+        '''for item in k[:age_groups_num]:
             exposed_list.append(item)
             exposed_list.append(1-item)
-
+        '''
         '''
         for item in k[:age_groups_num]:
             exposed_list.append(1-item)

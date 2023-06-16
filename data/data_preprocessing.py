@@ -45,13 +45,13 @@ class EpiData:
 
 
 def prepare_calibration_data(path: str, incidence: str, age_groups: List,
-                             strains: List, year: int, percent_protected: int):
+                             strains: List, year: int):
     epidemic_data = EpiData(path, incidence, age_groups, strains)
     weekly_data = epidemic_data.incidence_for_season(year)
+    weekly_data = weekly_data.drop(labels=[weekly_data.index[0]], axis=0)
     population_size = epidemic_data.pop_size(year)
-    suspected_pop_size = population_size * (1 - percent_protected)
 
-    return weekly_data, suspected_pop_size
+    return weekly_data, population_size
 
 
 def get_contact_matrix(contact_matrix_path):
