@@ -62,7 +62,7 @@ class InitValueFinder(Annealer):
             a_list = [self.state[a_idx]]
 
         dist2_list = self.energy_func(exposed_list, lam_list, a_list)
-        dist2 = sum(dist2_list)
+        dist2 = dist2_list[0]  # sum(dist2_list)
 
         return dist2
 

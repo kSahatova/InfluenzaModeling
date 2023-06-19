@@ -37,7 +37,8 @@ def extractPopSize(df, year, incidence, age_groups):
     if incidence == "strain" or incidence == "total":
         return list(df_year["Население"])[0]
     elif incidence == "strain_age-group" or incidence == "age-group":
-        return sum(list(df_year["Население " + age_group])[0] for age_group in age_groups)
+        # return sum(list(df_year["Население " + age_group])[0] for age_group in age_groups)
+        return [df_year["Население " + age_group].iloc[0] for age_group in age_groups]  # todo: don't forget to change
 
 
 def extractARIForSeason(df, first_year):

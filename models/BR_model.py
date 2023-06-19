@@ -114,7 +114,11 @@ class AgeModel(BRModel):
         y[:, 0] = self.I0
         x = np.zeros((age_groups_num, history_states_num, self.N + 1))
 
-        x[:, :, 0] = np.asarray(self.exposed_fraction_h) * ((1-self.mu) * self.rho - sum(self.I0))
+        self.rho = np.asarray(self.rho) - self.I0
+        for i in range(len(self.rho)):
+            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * self.rho[i]  # (1-self.mu) *
+
+        # x[:, :, 0] = np.asarray(self.exposed_fraction_h) * (1-self.mu)  # (1-self.mu)
         # [exp * self.rho for exp in self.exposed_fraction_h]
 
         population_immunity = np.zeros((age_groups_num, self.N + 1))
@@ -139,8 +143,9 @@ class AgeModel(BRModel):
                             m = self.strains.index(self.strains[h-1])  # m is strain index
                         else:
                             m = self.strains.index(self.strains[h])
+
                         f_value = f(h, m, a)
-                        infect_force = self.lam_m[0] * self.M[i][j] * self.sum_ill(y[j], t) * f_value / self.rho
+                        infect_force = self.lam_m[0] * self.M[i][j] * self.sum_ill(y[j], t) * f_value / self.rho[i]
                         infect_force_list.append(infect_force)
 
                     infect_force_total = sum(infect_force_list)

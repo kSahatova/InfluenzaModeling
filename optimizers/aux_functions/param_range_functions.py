@@ -11,21 +11,11 @@ def set_parameters_range(incidence, a_detail=False):
 
     if incidence == "age-group":
         exposed_range = {
-            "0-2": (0.005, 0.9),
-            "3-6": (0.005, 0.9),
-            "7-14": (0.005, 0.9),
+            "0-14": (0.005, 0.9),
             "15 и ст.": (0.005, 0.9)
         }
         lam_range = (0.03, 0.8)  # (0.03, 0.24)
-        if a_detail:
-            a_range = {
-                "0-2": (0.05, 0.5),
-                "3-6": (0.05, 0.5),
-                "7-14": (0.05, 0.5),
-                "15 и ст.": (0.05, 0.5)
-            }
-        else:
-            a_range = (0.0, 1.0)
+        a_range = (0.0, 1.0)
 
     params_range = []
     for item in [exposed_range, lam_range, a_range]:
@@ -61,7 +51,7 @@ def get_opt_params(K, incidence, age_groups, strains, a_detail=False):
     if incidence == 'strain':
         params = [K[:m], K[m:2*m], [K[-1]]]
     elif incidence == 'age-group':
-        params = [K[:n], [K[n+1]], K[n+1:] if a_detail else [K[-1]]]
+        params = [K[:n], [K[n]], K[n+1:] if a_detail else [K[-1]]]
     elif incidence == 'strain_age-group':
         params = [K[:m*n], K[m*n:m*n+m], K[-1:-n]]
     elif incidence == 'total':

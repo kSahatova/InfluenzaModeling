@@ -48,7 +48,7 @@ def prepare_calibration_data(path: str, incidence: str, age_groups: List,
                              strains: List, year: int):
     epidemic_data = EpiData(path, incidence, age_groups, strains)
     weekly_data = epidemic_data.incidence_for_season(year)
-    weekly_data = weekly_data.drop(labels=[weekly_data.index[0]], axis=0)
+    # weekly_data = weekly_data.drop(labels=[weekly_data.index[0]], axis=0)
     population_size = epidemic_data.pop_size(year)
 
     return weekly_data, population_size

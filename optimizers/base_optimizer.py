@@ -158,7 +158,7 @@ class BaseOptimizer:
         state, e = initFinderObj.anneal()
 
         print("Initial state: ", state)
-        optim_result = minimize(self.fit_function, state, method='L-BFGS-B', bounds=param_range)  # SLSQP L-BFGS-B
+        optim_result = minimize(self.fit_function, state, method='L-BFGS-B', bounds=param_range)  # SLSQP
 
         return self, optim_result
 
