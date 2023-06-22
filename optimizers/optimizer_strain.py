@@ -4,11 +4,13 @@ from .base_optimizer import BaseOptimizer
 class StrainModelOptimizer(BaseOptimizer):
     def __init__(self, model, data_obj, model_detail):
         super().__init__(model, data_obj, model_detail)
-        self.groups = self.strains if model_detail else ['Все']
+        self.groups = [strain+'_'+age for strain in self.strains
+                       for age in self.age_groups] if model_detail else ['Все']
 
     def fit_function(self, k):
         age_groups_num = len(self.age_groups)
         strains_num = len(self.strains)
+        n = strains_num * age_groups_num
 
         sum_exposed = sum([k[i][j] for i in range(age_groups_num)
                            for j in range(strains_num)])
@@ -23,10 +25,8 @@ class StrainModelOptimizer(BaseOptimizer):
                 temp.append(0)
             exposed_list.append(temp)
 
-        # todo: finish indexing
-        lam_list = [k[i + len(self.strains)] for i in range(0, len(self.strains))]
-
-        a = k[2 * len(self.strains)]  # Default position for a value
+        lam_list = list(k[n:n + strains_num])
+        a = list(k[-age_groups_num:])  # Default position for a value
 
         dist2_list = self.find_model_fit(exposed_list, lam_list, a)
         dist2 = sum(dist2_list)

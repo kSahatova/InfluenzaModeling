@@ -45,21 +45,41 @@ class InitValueFinder(Annealer):
 
         exposed_list,  lam_list,  a_list = [], [], []
         age_groups_num = len(self.age_groups)
+        strains_num = len(self.history_states) - 1
 
-        for item in self.state[:age_groups_num]:
-            exposed_list.append([item, 1-item])
+        if self.incidence_type == 'age-group':
 
-        lam_idx = age_groups_num
-        lam_list = [self.state[age_groups_num]]
+            for item in self.state[:age_groups_num]:
+                exposed_list.append([item, 1-item])
 
-        if self.a_detail:
-            a_list = [0] * len(self.age_groups)
-            a_idx = lam_idx + 1
-            for idx_j, age_group in enumerate(self.age_groups):  # 4 groups
-                a_list[idx_j] = self.state[a_idx + idx_j]
-        else:
-            a_idx = lam_idx + 1
-            a_list = [self.state[a_idx]]
+            lam_idx = age_groups_num
+            lam_list = [self.state[age_groups_num]]
+
+            if self.a_detail:
+                a_list = [0] * len(self.age_groups)
+                a_idx = lam_idx + 1
+                for idx_j, age_group in enumerate(self.age_groups):  # 4 groups
+                    a_list[idx_j] = self.state[a_idx + idx_j]
+            else:
+                a_idx = lam_idx + 1
+                a_list = [self.state[a_idx]]
+
+        elif self.incidence_type == 'strain_age-group':
+
+            for i in range(age_groups_num):
+                sum_exposed = sum(self.state[i * strains_num:i * strains_num + strains_num])
+
+                if sum_exposed < 1:
+                    temp = [self.state[i * strains_num + m] for m in range(strains_num)]
+                    temp.append(1 - sum_exposed)
+                else:
+                    temp = [self.state[i * strains_num + m] / sum_exposed for m in range(strains_num)]
+                    temp.append(0)
+                exposed_list.append(temp)
+
+            n = age_groups_num * strains_num
+            lam_list = list(self.state[n:n+strains_num])
+            a_list = list(self.state[-age_groups_num:])
 
         dist2_list = self.energy_func(exposed_list, lam_list, a_list)
         dist2 = sum(dist2_list)

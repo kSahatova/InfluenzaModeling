@@ -99,6 +99,8 @@ class BaseOptimizer:
 
         self.model.init_simul_params(exposed_list, lam_list, a)
         infected_pop, self.population_immunity, self.active_population, self.r0 = self.model.make_simulation()
+        inf_shape = infected_pop.shape
+        infected_pop = infected_pop.reshape(inf_shape[0] * inf_shape[1], inf_shape[2])
         self.df_simul_daily = pd.DataFrame(infected_pop.T, columns=self.groups)
 
         if self.df_simul_daily.max().max() == 1.0:  # compares maximum among all columns with 1

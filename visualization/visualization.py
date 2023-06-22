@@ -14,7 +14,7 @@ def plot_r0(r0: DataFrame, city: str, year: int, output_file: str):
     for i, r in enumerate(r0):
         plt.plot(year, r, 'o', color=colors[i])
 
-    plt.title(f"{city} ({year} $-$ {year + 1})")
+    plt.title(f"{city}, {year}$-${year + 1}")
     plt.xlabel('Year')
     plt.ylabel('R0 value')
     plt.legend()
@@ -36,7 +36,7 @@ def plot_immune_population(population_immunity: DataFrame,
     for i, immun in enumerate(population_immunity):
         plt.plot(year, immun, 'o', color=colors[i])
 
-    plt.title(f"{city} ({year} $-$ {year + 1})")
+    plt.title(f"{city}, {year}$-${year + 1}")
     plt.xlabel('Year')
     plt.ylabel('Immune population')
     plt.legend()
@@ -76,7 +76,7 @@ def plot_fitting(original_data: DataFrame,
                      fontsize=16, color=colors[i], horizontalalignment='left',
                      verticalalignment='center', transform=ax.transAxes)
 
-    plt.title(f'{city} ({year} $-$ {year + 1})')
+    plt.title(f'{city}, {year}$-${year + 1}')
     plt.xlabel('Weeks')
     plt.ylabel('Incidence, cases')
     plt.legend()

@@ -31,7 +31,7 @@ class BRModel:
         self.N = 1800  # in days
 
         self.M = M
-        self.rho = pop_size  # A scalar in absence of separate age groups
+        self.pop_size = pop_size  # A scalar in absence of separate age groups
         self.mu = mu
 
         self.incidence_type = incidence_type
@@ -152,7 +152,6 @@ class StrainModel(BRModel):
         super().__init__(M, pop_size, mu, incidence_type, age_groups, strains)
 
         self.history_states = self.strains.copy() + ["No exposure"]
-        self.history_states_num = len(self.history_states)
         self.total_recovered = [0 for _ in range(len(self.strains))]
         self.I0 = np.ones((len(self.age_groups), len(self.strains)))
 
@@ -166,9 +165,10 @@ class StrainModel(BRModel):
             y[i, :, 0] = self.I0[i, :]
 
         x = np.zeros((age_groups_num, history_states_num, self.N + 1))
-        self.rho = np.asarray(self.rho) - self.I0
-        for i in range(len(self.rho)):
-            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1 - self.mu) * self.rho[i]
+        rho = np.asarray([self.pop_size]).T - self.I0.sum(axis=1).reshape(age_groups_num, 1)
+        total_pop_size = rho.sum()
+        for i in range(age_groups_num):
+            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1 - self.mu) * rho[i]
 
         population_immunity = np.zeros((strains_num, self.N + 1))
 
@@ -182,23 +182,29 @@ class StrainModel(BRModel):
                     x[i, h, t + 1] = x[i, h, t]
 
                     infect_force_list = []
+                    inf_force_per_strain = []
                     a = self.a[0]
+
                     for m in range(strains_num):
+                        temp = 0
                         for j in range(age_groups_num):
                             f_value = f(h, m, a)
-                            infect_force = self.lam_m[m] * self.M[i][j] * self.sum_ill(y[j, m], t) * f_value / self.rho[m]
+                            cum_y = self.sum_ill(y[j, m], t)
+                            infect_force = self.lam_m[m] * self.M[i][j] * cum_y * f_value / rho[i]
                             infect_force_list.append(infect_force)
+                            temp += infect_force
+                        inf_force_per_strain.append(temp)
 
                     infect_force_total = sum(infect_force_list)
                     real_infected = min(infect_force_total, 1.0) * x[i, h, t]
                     x[i, h, t + 1] -= real_infected
 
                     if infect_force_total > 0:
-                        for m in range(0, strains_num):  # calculating y_m
-                            real_infected_m = real_infected * (infect_force_list[m] / infect_force_total)
+                        for m in range(strains_num):
+                            real_infected_m = real_infected * inf_force_per_strain[m]
                             y[i, m, t + 1] += real_infected_m
-                            self.total_recovered[m] += real_infected_m  # Они переболеют (нет смертности)
+                            self.total_recovered[m] += real_infected_m
 
-        return y, population_immunity, self.rho, []
+        return y, population_immunity, rho, []
 
 
