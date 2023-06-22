@@ -14,8 +14,30 @@ def set_parameters_range(incidence, a_detail=False):
             "0-14": (0.005, 0.9),
             "15 и ст.": (0.005, 0.9)
         }
-        lam_range = (0.03, 0.8)  # (0.03, 0.24)
+        lam_range = (0.24, 0.3)  # (0.03, 0.24)
         a_range = (0.0, 1.0)
+    elif incidence == "strain_age-group":
+        exposed_range = {
+            "0-14": {
+                "A(H1N1)pdm09": (0.005, 0.9),
+                "A(H3N2)": (0.002, 0.9),
+                "B": (0.005, 0.9)
+            },
+            "15 и ст.": {
+                "A(H1N1)pdm09": (0.005, 0.9),
+                "A(H3N2)": (0.001, 0.9),
+                "B": (0.005, 0.9)
+            }
+        }
+        lam_range = {
+            "A(H1N1)pdm09": (0.03, 0.24),
+            "A(H3N2)": (0.03, 0.26),
+            "B": (0.03, 0.26)
+        }
+        a_range = {
+            "0-14": (0.0, 1.0),
+            "15 и ст.": (0.0, 1.0)
+        }
 
     params_range = []
     for item in [exposed_range, lam_range, a_range]:

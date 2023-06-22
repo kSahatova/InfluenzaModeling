@@ -88,12 +88,9 @@ class BRModel:
 class AgeModel(BRModel):
     def __init__(self, M, pop_size, mu, incidence_type, age_groups, strains):
         super().__init__(M, pop_size, mu, incidence_type, age_groups, strains)
-        # self.history_states = [(age, state) for age in self.age_groups for state in ['Exposed', 'Not exposed']]
-        # self.history_states = self.age_groups + ['Not exposed'] * len(self.age_groups)
-        # self.history_states = self.age_groups
-        self.history_states = ['Exposed', 'Not exposed']
+
         self.I0 = np.ones(len(self.age_groups))
-        # self.rho -= np.sum(self.I0)
+        self.history_states = ['Exposed', 'Not exposed']
         self.total_recovered = [0 for _ in range(len(self.age_groups))]
         self.a_detail = False  # [legacy] change manually if needed
         self.strains = ['Generic']
@@ -102,33 +99,20 @@ class AgeModel(BRModel):
         age_groups_num = len(self.age_groups)
         history_states_num = len(self.history_states)
 
-        '''y = pd.DataFrame(0, index=self.age_groups, columns=range(self.N+1))  # strains x N
-        y.iloc[:, 0] = self.I0
-        x_index = pd.MultiIndex.from_product([self.age_groups, self.history_states],
-                                             names=["age-groups", "state"])
-        x_data = np.zeros((x_index.size, self.N+1))
-        x = pd.DataFrame(x_data, index=x_index)  # history_states x N
-        x.iloc[:, 0] = [(exp_fraction * self.rho).item() for exp_fraction in self.exposed_fraction_h]'''
-
         y = np.zeros((age_groups_num, self.N + 1))
         y[:, 0] = self.I0
         x = np.zeros((age_groups_num, history_states_num, self.N + 1))
 
         self.rho = np.asarray(self.rho) - self.I0
         for i in range(len(self.rho)):
-            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * self.rho[i]  # (1-self.mu) *
-
-        # x[:, :, 0] = np.asarray(self.exposed_fraction_h) * (1-self.mu)  # (1-self.mu)
-        # [exp * self.rho for exp in self.exposed_fraction_h]
+            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1-self.mu) * self.rho[i]  # (1-self.mu) *
 
         population_immunity = np.zeros((age_groups_num, self.N + 1))
         recovery_days_num = self.get_recovery_time()
 
         for t in range(self.N):
             for i, age in enumerate(self.age_groups):
-
                 for h, state in enumerate(self.history_states):
-                    # x.loc[(age, state), t + 1] = x.loc[(age, state), t]
                     x[i, h, t + 1] = x[i, h, t]
 
                     infect_force_list = []
@@ -160,51 +144,61 @@ class AgeModel(BRModel):
                         else:
                             population_immunity[i][t + 1] = population_immunity[i][t] + real_infected
 
-                    '''if infect_force_total > 0:
-                        for j in range(age_groups_num):  # Calculating y_m
-                            real_infected_j = real_infected * (infect_force_list[j] / infect_force_total)
+        return y, population_immunity, self.rho, []
 
-                            y[j][t + 1] += real_infected_j
-                            self.total_recovered[j] += real_infected_j  # They will get cured (no mortality)
 
-                            if t > recovery_days_num - 1:
-                                if isinstance(real_infected_j, np.ndarray):
-                                    population_immunity[j][t + 1] = population_immunity[j][t] + real_infected_j[0]
-                                else:
-                                    population_immunity[j][t + 1] = population_immunity[j][t] + real_infected_j'''
+class StrainModel(BRModel):
+    def __init__(self, M, pop_size, mu, incidence_type, age_groups, strains):
+        super().__init__(M, pop_size, mu, incidence_type, age_groups, strains)
 
-        '''for t in range(0, self.N):
-            for h in range(0, history_states_num):
-                x[h][t + 1] = x[h][t]
+        self.history_states = self.strains.copy() + ["No exposure"]
+        self.history_states_num = len(self.history_states)
+        self.total_recovered = [0 for _ in range(len(self.strains))]
+        self.I0 = np.ones((len(self.age_groups), len(self.strains)))
 
-                infect_force_total = 0  # Infection from all strains per group
-                infect_force_list = []
+    def make_simulation(self):
+        strains_num = len(self.strains)
+        age_groups_num = len(self.age_groups)
+        history_states_num = len(self.history_states)
 
-                for m, age_group in enumerate(self.age_groups):  # Calculating y_m
-                    if self.a_detail:
-                        a = self.a[m]   # [legacy] deprecated
-                    else:
-                        a = self.a[0]
+        y = np.zeros((age_groups_num, strains_num, self.N + 1))
+        for i in range(age_groups_num):
+            y[i, :, 0] = self.I0[i, :]
 
-                    # todo: self.M[m][h]
-                    inf_force = self.lam_m[0] * 6.528 * self.sum_ill(y[m], t) * f(h, m, a) / self.rho
-                    infect_force_list.append(inf_force)
-                    infect_force_total += inf_force  # Considering the overall strength of the infection
+        x = np.zeros((age_groups_num, history_states_num, self.N + 1))
+        self.rho = np.asarray(self.rho) - self.I0
+        for i in range(len(self.rho)):
+            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1 - self.mu) * self.rho[i]
 
-                real_infected = min(infect_force_total, 1.0) * x[h][t]
-                x[h][t + 1] -= real_infected
+        population_immunity = np.zeros((strains_num, self.N + 1))
 
-                if infect_force_total > 0:
-                    for m, age_group in enumerate(self.age_groups):  # Calculating y_m
-                        real_infected_j = real_infected * (infect_force_list[m] / infect_force_total)
+        for m in range(0, strains_num):
+            for i in range(1, self.get_recovery_time() - 1):
+                population_immunity[m][i] = population_immunity[m][0]
 
-                        y[m][t + 1] += real_infected_j
-                        self.total_recovered[m] += real_infected_j  # They will get cured (no mortality)
+        for t in range(self.N):
+            for i, age in enumerate(self.age_groups):
+                for h, state in enumerate(self.history_states):
+                    x[i, h, t + 1] = x[i, h, t]
 
-                        if t > recovery_days_num - 1:
-                            if isinstance(real_infected_j, np.ndarray):
-                                population_immunity[m][t + 1] = population_immunity[m][t] + real_infected_j[0]
-                            else:
-                                population_immunity[m][t + 1] = population_immunity[m][t] + real_infected_j'''
+                    infect_force_list = []
+                    a = self.a[0]
+                    for m in range(strains_num):
+                        for j in range(age_groups_num):
+                            f_value = f(h, m, a)
+                            infect_force = self.lam_m[m] * self.M[i][j] * self.sum_ill(y[j, m], t) * f_value / self.rho[m]
+                            infect_force_list.append(infect_force)
+
+                    infect_force_total = sum(infect_force_list)
+                    real_infected = min(infect_force_total, 1.0) * x[i, h, t]
+                    x[i, h, t + 1] -= real_infected
+
+                    if infect_force_total > 0:
+                        for m in range(0, strains_num):  # calculating y_m
+                            real_infected_m = real_infected * (infect_force_list[m] / infect_force_total)
+                            y[i, m, t + 1] += real_infected_m
+                            self.total_recovered[m] += real_infected_m  # Они переболеют (нет смертности)
 
         return y, population_immunity, self.rho, []
+
+

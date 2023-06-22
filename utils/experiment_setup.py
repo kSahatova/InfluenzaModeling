@@ -4,10 +4,11 @@ from typing import Optional,Any
 from pandas import DataFrame
 
 from models import BR_model
-from models.BR_model import AgeModel
+from models.BR_model import AgeModel, StrainModel
 
 from optimizers.base_optimizer import BaseOptimizer
 from optimizers.optimizer_age import AgeModelOptimizer
+from optimizers.optimizer_strain import StrainModelOptimizer
 
 
 @dataclass
@@ -24,6 +25,9 @@ class ExperimentalSetup:
         if self.incidence_type == 'age-group':
             model = AgeModel
             optimizer = AgeModelOptimizer
+        elif self.incidence_type == 'strain_age-group':
+            model = StrainModel
+            optimizer = StrainModelOptimizer
 
         return model, optimizer
 

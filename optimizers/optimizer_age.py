@@ -22,7 +22,7 @@ class AgeModelOptimizer(BaseOptimizer):
             a = [k[age_groups_num + 1]]  # Default position for a value
 
         dist2_list = self.find_model_fit(exposed_list, lam_list, a)
-        dist2 = dist2_list[0]  # sum(dist2_list)
+        dist2 = sum(dist2_list)
 
         return dist2
 

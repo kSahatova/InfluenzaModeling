@@ -122,12 +122,13 @@ class BaseOptimizer:
                                                         self.groups, self.delta, self.data_weights)
         else:
             self.delta = 0
+            self.update_bootstrapped_data_alignment()
             dist2_list, self.dist2_ww_list = \
                 dtf.calculate_dist_squared_weighted_list(self.df_data_weekly, self.df_simul_weekly, self.groups,
                                                          self.delta, self.data_weights)
 
             self.R_square_list = [1 - fun_val / res2 for fun_val, res2 in zip(dist2_list, self.res2_list)]
-            self.update_bootstrapped_data_alignment()
+
         print(" R2: ", self.R_square_list)
 
         return dist2_list
