@@ -103,9 +103,9 @@ class AgeModel(BRModel):
         y[:, 0] = self.I0
         x = np.zeros((age_groups_num, history_states_num, self.N + 1))
 
-        self.rho = np.asarray(self.rho) - self.I0
-        for i in range(len(self.rho)):
-            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1-self.mu) * self.rho[i]  # (1-self.mu) *
+        rho = np.asarray(self.pop_size) - self.I0
+        for i in range(age_groups_num):
+            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1-self.mu) * rho[i]  # (1-self.mu) *
 
         population_immunity = np.zeros((age_groups_num, self.N + 1))
         recovery_days_num = self.get_recovery_time()
@@ -129,7 +129,7 @@ class AgeModel(BRModel):
                             m = self.strains.index(self.strains[h])
 
                         f_value = f(h, m, a)
-                        infect_force = self.lam_m[0] * self.M[i][j] * self.sum_ill(y[j], t) * f_value / self.rho[i]
+                        infect_force = self.lam_m[0] * self.M[i][j] * self.sum_ill(y[j], t) * f_value / rho[i]
                         infect_force_list.append(infect_force)
 
                     infect_force_total = sum(infect_force_list)
@@ -144,7 +144,7 @@ class AgeModel(BRModel):
                         else:
                             population_immunity[i][t + 1] = population_immunity[i][t] + real_infected
 
-        return y, population_immunity, self.rho, []
+        return y, population_immunity, rho, []
 
 
 class StrainModel(BRModel):
@@ -172,10 +172,6 @@ class StrainModel(BRModel):
 
         population_immunity = np.zeros((strains_num, self.N + 1))
 
-        for m in range(0, strains_num):
-            for i in range(1, self.get_recovery_time() - 1):
-                population_immunity[m][i] = population_immunity[m][0]
-
         for t in range(self.N):
             for i, age in enumerate(self.age_groups):
                 for h, state in enumerate(self.history_states):
@@ -183,14 +179,14 @@ class StrainModel(BRModel):
 
                     infect_force_list = []
                     inf_force_per_strain = []
-                    a = self.a[0]
+                    a = self.a[i]
 
                     for m in range(strains_num):
                         temp = 0
                         for j in range(age_groups_num):
                             f_value = f(h, m, a)
-                            cum_y = self.sum_ill(y[j, m], t)
-                            infect_force = self.lam_m[m] * self.M[i][j] * cum_y * f_value / rho[i]
+                            cum_y = self.sum_ill(y[j, m, :], t)
+                            infect_force = self.lam_m[m] * self.M[i][j] * cum_y * f_value / total_pop_size
                             infect_force_list.append(infect_force)
                             temp += infect_force
                         inf_force_per_strain.append(temp)

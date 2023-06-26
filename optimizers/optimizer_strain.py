@@ -12,21 +12,21 @@ class StrainModelOptimizer(BaseOptimizer):
         strains_num = len(self.strains)
         n = strains_num * age_groups_num
 
-        sum_exposed = sum([k[i][j] for i in range(age_groups_num)
-                           for j in range(strains_num)])
         exposed_list = []
 
         for i in range(age_groups_num):
+            sum_exposed = sum(k[i * strains_num:i * strains_num + strains_num])
+
             if sum_exposed < 1:
-                temp = [k[i][m] for m in range(strains_num)]
-                temp.append(1-sum_exposed)
+                temp = [k[i * strains_num + m] for m in range(strains_num)]
+                temp.append(1 - sum_exposed)
             else:
-                temp = [k[i][m]/sum_exposed for m in range(strains_num)]
+                temp = [k[i * strains_num + m] / sum_exposed for m in range(strains_num)]
                 temp.append(0)
             exposed_list.append(temp)
 
         lam_list = list(k[n:n + strains_num])
-        a = list(k[-age_groups_num:])  # Default position for a value
+        a = list(k[-age_groups_num:])
 
         dist2_list = self.find_model_fit(exposed_list, lam_list, a)
         dist2 = sum(dist2_list)
