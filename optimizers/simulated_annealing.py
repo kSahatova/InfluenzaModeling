@@ -56,6 +56,7 @@ class InitValueFinder(Annealer):
             lam_list = [self.state[age_groups_num]]
 
             if self.a_detail:
+                # todo: change later
                 a_list = [0] * len(self.age_groups)
                 a_idx = lam_idx + 1
                 for idx_j, age_group in enumerate(self.age_groups):  # 4 groups
