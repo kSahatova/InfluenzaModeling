@@ -4,8 +4,8 @@ from .base_optimizer import BaseOptimizer
 class StrainModelOptimizer(BaseOptimizer):
     def __init__(self, model, data_obj, model_detail):
         super().__init__(model, data_obj, model_detail)
-        self.groups = [strain+'_'+age for strain in self.strains
-                       for age in self.age_groups] if model_detail else ['Все']
+        self.groups = [strain+'_'+age for age in self.age_groups for strain in self.strains
+                       ] if model_detail else ['Все']
 
     def fit_function(self, k):
         age_groups_num = len(self.age_groups)

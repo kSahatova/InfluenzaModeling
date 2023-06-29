@@ -3,7 +3,7 @@ contact_matrix_path: 'data/input/contact_matrix_revised_v2.p'
 
 city: 'Saint Petersburg'
 year: 2010
-percent_protected: 0.1  # mu
+percent_protected: 0.2  # mu
 
 INCIDENCE_TYPE: 'strain_age-group'
 DATA_DETAIL: True
@@ -13,7 +13,7 @@ A_DETAIL: False
 PREDICT: False
 
 #age_groups: ['0-2'] # , '3-6', '7-14', '15 и ст.'
-age_groups: ['0-14']  # , '15 и ст.'
+age_groups: ['0-14', '15 и ст.']  # , '15 и ст.'
 strains: ['A(H1N1)pdm09', 'A(H3N2)', 'B']
 
 output_folder: 'output'
