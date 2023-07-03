@@ -154,6 +154,7 @@ class StrainModel(BRModel):
 
         self.history_states = self.strains.copy() + ["No exposure"]
         self.total_recovered = [0 for _ in range(len(self.strains))]
+        self.age_groups = self.age_groups if self.incidence_type != 'strain' else ['total']
         self.I0 = np.ones((len(self.age_groups), len(self.strains)))
 
     def make_simulation(self):

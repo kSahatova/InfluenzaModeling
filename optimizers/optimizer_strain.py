@@ -1,11 +1,17 @@
+from itertools import product
+
 from .base_optimizer import BaseOptimizer
 
 
 class StrainModelOptimizer(BaseOptimizer):
     def __init__(self, model, data_obj, model_detail):
         super().__init__(model, data_obj, model_detail)
-        self.groups = [strain+'_'+age for age in self.age_groups for strain in self.strains
-                       ] if model_detail else ['Все']
+        self.age_groups = model.age_groups if self.incidence_type != 'strain' else ['total']
+        self.groups = [i[1] + '_' + i[0] if i[0] != 'total' else i[1]
+                       for i in list(product(self.age_groups, self.strains))] \
+            if model_detail else ['Все']
+        # [strain+'_'+age for age in self.age_groups
+        # for strain in self.strains] if model_detail else ['Все']
 
     def fit_function(self, k):
         age_groups_num = len(self.age_groups)

@@ -23,11 +23,7 @@ def set_parameters_range(incidence, a_detail=False):
                 "A(H3N2)": (0.005, 0.9),
                 "B": (0.005, 0.9)
             },
-            "15": {
-                "A(H1N1)pdm09": (0.005, 0.9),
-                "A(H3N2)": (0.005, 0.9),
-                "B": (0.005, 0.9)
-            }
+
         }
         lam_range = {
             "A(H1N1)pdm09": (0.01, 0.3),
@@ -36,8 +32,20 @@ def set_parameters_range(incidence, a_detail=False):
         }
         a_range = {
             "0-14": (0.0, 1.0),
-            "15 и ст.": (0.0, 1.0)
+            # "15 и ст.": (0.0, 1.0)
         }
+    elif incidence == "strain":
+        exposed_range = {
+            "A(H1N1)pdm09": (0.005, 0.9),
+            "A(H3N2)": (0.005, 0.9),
+            "B": (0.005, 0.9)
+        }
+        lam_range = {
+            "A(H1N1)pdm09": (0.01, 0.3),
+            "A(H3N2)": (0.01, 0.3),
+            "B": (0.01, 0.3)
+        }
+        a_range = (0.0, 1.0)
 
     params_range = []
     for item in [exposed_range, lam_range, a_range]:

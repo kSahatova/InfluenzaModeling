@@ -82,6 +82,17 @@ class InitValueFinder(Annealer):
             lam_list = list(self.state[n:n+strains_num])
             a_list = list(self.state[-age_groups_num:])
 
+        if self.incidence_type == 'strain':
+            sum_exposed = sum(self.state[:strains_num])
+            if sum_exposed < 1:
+                exposed_list.append(1-sum_exposed)
+            else:
+                exposed_list = [item / sum_exposed for item in self.state[:strains_num]]
+                exposed_list.append(0)
+
+            lam_list = self.state[strains_num:2*strains_num]
+            a_list = [self.state[-1]]
+
         dist2_list = self.energy_func(exposed_list, lam_list, a_list)
         dist2 = sum(dist2_list)
 

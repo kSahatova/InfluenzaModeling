@@ -25,7 +25,7 @@ class ExperimentalSetup:
         if self.incidence_type == 'age-group':
             model = AgeModel
             optimizer = AgeModelOptimizer
-        elif self.incidence_type == 'strain_age-group':
+        elif self.incidence_type in ['strain_age-group', 'strain']:
             model = StrainModel
             optimizer = StrainModelOptimizer
 
