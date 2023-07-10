@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
+from scipy.stats import qmc
 
 from functools import partial
 from multiprocessing import Pool
@@ -159,11 +160,39 @@ class BaseOptimizer:
                                         self.find_model_fit)
         print("Assessing the best initial point, this might take some time...")
         state, e = initFinderObj.anneal()
-
         print("Initial state: ", state)
         optim_result = minimize(self.fit_function, state, method='L-BFGS-B', bounds=param_range)  # SLSQP
 
+        '''sampler = qmc.LatinHypercube(d=7)
+        sampled_params = sampler.random(n=1000)
+        l_bounds = [0.05, 0.05, 0.05, 0.01, 0.01, 0.01, 0.05]
+        u_bounds = [0.9, 0.9, 0.9, 0.2, 0.2, 0.2, 1.0]
+        sampled_params = qmc.scale(sampled_params, l_bounds, u_bounds)
+        optim_distance = 10e30
+        optim_result = None
+        for params in sampled_params:
+            print("Initial state: ", params)
+            result = minimize(self.fit_function, params, method='L-BFGS-B', bounds=param_range)  # SLSQP
+            if result.fun < optim_distance:
+                optim_distance = result.fun
+                optim_result = result'''
         return self, optim_result
+
+    def optimize_lhs(self):
+        sampler = qmc.LatinHypercube(d=7)
+        sampled_params = sampler.random(n=10000)
+        l_bounds = [0.1, 0.1, 0.1, 0.06, 0.07, 0.06, 0.05]
+        u_bounds = [0.4, 0.4, 0.4, 1.0, 1.0, 1.0, 1.0]
+        sampled_params = qmc.scale(sampled_params, l_bounds, u_bounds)
+        # result = qmc.discrepancy(sampled_params)
+        min_distance = 10e30
+        opt_params = []
+        for params in sampled_params:
+            distance = self.fit_function(params)
+            if distance < min_distance:
+                min_distance = distance
+                opt_params = params.tolist()
+        return opt_params, min_distance
 
     def run_prediction(self):
         initial_param_values, param_range = self.init_parameters()
@@ -213,6 +242,8 @@ class BaseOptimizer:
 
         else:
             opt_result, opt_params = self.run_calibration()
+            #opt_params, opt_distance = self.optimize_lhs()
+            #print("Optimal distance: ", opt_distance)
 
         exposed_opt_list, lambda_opt_list, a_opt = pr.get_opt_params(opt_params,
                                                                      self.incidence_type,

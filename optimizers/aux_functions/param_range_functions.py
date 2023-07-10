@@ -36,17 +36,19 @@ def set_parameters_range(incidence, a_detail=False):
         }
     elif incidence == "strain":
         exposed_range = {
-            "A(H1N1)pdm09": (0.005, 0.9),
-            "A(H3N2)": (0.005, 0.9),
-            "B": (0.005, 0.9)
+            "A(H1N1)pdm09": (0.01, 0.4),
+            "A(H3N2)": (0.01, 0.4),
+            "B": (0.01, 0.4)
         }
         lam_range = {
-            "A(H1N1)pdm09": (0.01, 0.3),
+            '''"A(H1N1)pdm09": (0.01, 0.3),
             "A(H3N2)": (0.01, 0.3),
-            "B": (0.01, 0.3)
+            "B": (0.01, 0.3)'''
+            "A(H1N1)pdm09": (0.06, 0.12),
+            "A(H3N2)": (0.07, 0.13),
+            "B": (0.07, 0.13)
         }
         a_range = (0.0, 1.0)
-
     params_range = []
     for item in [exposed_range, lam_range, a_range]:
         for param in unpack_parameter_values(item):

@@ -83,8 +83,10 @@ class InitValueFinder(Annealer):
             a_list = list(self.state[-age_groups_num:])
 
         if self.incidence_type == 'strain':
+            self.state = list(self.state)
             sum_exposed = sum(self.state[:strains_num])
             if sum_exposed < 1:
+                exposed_list = self.state[:strains_num]
                 exposed_list.append(1-sum_exposed)
             else:
                 exposed_list = [item / sum_exposed for item in self.state[:strains_num]]

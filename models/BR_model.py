@@ -218,7 +218,10 @@ class StrainModel(BRModel):
         rho = np.asarray([self.pop_size]).T - self.I0.sum(axis=1).reshape(age_groups_num, 1)
 
         for i in range(age_groups_num):
-            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1 - self.mu) * rho[i]
+            exp_list = np.asarray(self.exposed_fraction_h)
+            if len(exp_list.shape) == 1:
+                exp_list = exp_list.reshape(1, -1)
+            x[i, :, 0] = exp_list[i, :] * (1 - self.mu) * rho[i]
 
         population_immunity = np.zeros((strains_num, self.N + 1))
 
@@ -245,19 +248,6 @@ class StrainModel(BRModel):
                     if infection_force_total > 0:
                         for m in range(strains_num):
                             y[i, m, t+1] += inf_force_list[m] / infection_force_total * real_infected
-
-
-
-                '''for m in range(strains_num):
-                    temp = 0
-                    susceptible_total = 0
-                    for j in range(age_groups_num):
-                        temp += self.sum_ill(y[j, m, :], t) * self.lam_m[m] * self.M[i, j] / rho[i]
-
-                    for h in range(history_states_num):
-                        susceptible_total += f(h, m, self.a[i]) * x[i, h, t]
-
-                    y[i, m, t+1] = temp * susceptible_total'''
 
         return y, population_immunity, rho, []
 

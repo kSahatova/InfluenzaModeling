@@ -57,7 +57,8 @@ def plot_fitting(original_data: DataFrame,
 
     ax = plt.figure(figsize=(10, 7)).add_subplot(111)
     colors = list(TABLEAU_COLORS.keys()) + list(BASE_COLORS.keys())
-    labels = [item.replace('15 и ст.', '15+').split('_') for item in list(simulated_data.columns)]
+    labels = [item.replace('15 и ст.', '15+').replace('_', " ")
+              for item in list(simulated_data.columns)]
 
     for i, label in enumerate(labels):
         if predict:
