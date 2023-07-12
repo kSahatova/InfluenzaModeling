@@ -13,7 +13,7 @@ A_DETAIL: False
 PREDICT: False
 
 #age_groups: ['0-2'] # , '3-6', '7-14', '15 и ст.'
-age_groups: ['0-14']  # , '15 и ст.'
+age_groups: ['0-14', '15 и ст.']  # , '15 и ст.'
 strains: ['A(H1N1)pdm09', 'A(H3N2)', 'B']
 
 output_folder: 'output'

@@ -35,6 +35,8 @@ def calculate_dist_squared_weighted_list(df_data, df_simul, groups, delta, w):
     # x is real data, y is modeled curve
     # delta is the difference between the epidemic starts in real data and modeled curve
 
+    # groups = [ x for x in groups if "15 и ст." not in x ]
+
     sum_list = []
     sum_ww_list = []
     for group in groups:
@@ -43,12 +45,13 @@ def calculate_dist_squared_weighted_list(df_data, df_simul, groups, delta, w):
 
         sum = 0
         sum_ww = 0
-        for i in range(delta, delta + len(x)):
-            try:
-                sum = sum + w[group][i - delta] * pow(x[i - delta] - y[i], 2)
-                sum_ww = sum_ww + pow(x[i - delta] - y[i], 2)
-            except IndexError as e:
-                print(e)
+        if "15 и ст." not in x:     # If we just want to give weights = 0 to a certain age group    ###
+            for i in range(delta, delta + len(x)):
+                try:
+                    sum = sum + w[group][i - delta] * pow(x[i - delta] - y[i], 2)
+                    sum_ww = sum_ww + pow(x[i - delta] - y[i], 2)
+                except IndexError as e:
+                    print(e)
 
         sum_list.append(sum)
         sum_ww_list.append(sum_ww)

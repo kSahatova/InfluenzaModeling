@@ -23,7 +23,11 @@ def set_parameters_range(incidence, a_detail=False):
                 "A(H3N2)": (0.005, 0.9),
                 "B": (0.005, 0.9)
             },
-
+            "15 и ст.": {
+                "A(H1N1)pdm09": (0.005, 0.9),
+                "A(H3N2)": (0.005, 0.9),
+                "B": (0.005, 0.9)
+            },
         }
         lam_range = {
             "A(H1N1)pdm09": (0.03, 0.8),
@@ -32,6 +36,7 @@ def set_parameters_range(incidence, a_detail=False):
         }
         a_range = {
             "0-14": (0.0, 1.0),
+            "15 и ст.": (0.0, 1.0),
         }
 
     params_range = []
