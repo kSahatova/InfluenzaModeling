@@ -168,54 +168,6 @@ class StrainModel(BRModel):
 
         x = np.zeros((age_groups_num, history_states_num, self.N + 1))
         rho = np.asarray([self.pop_size]).T - self.I0.sum(axis=1).reshape(age_groups_num, 1)
-        total_pop_size = rho.sum()
-        for i in range(age_groups_num):
-            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1 - self.mu) * rho[i]
-
-        population_immunity = np.zeros((strains_num, self.N + 1))
-
-        for t in range(self.N):
-            for i, age in enumerate(self.age_groups):
-                for h, state in enumerate(self.history_states):
-                    x[i, h, t + 1] = x[i, h, t]
-
-                    infect_force_list = []
-                    inf_force_per_strain = []
-                    a = self.a[i]
-
-                    for m in range(strains_num):
-                        temp = 0
-                        for j in range(age_groups_num):
-                            f_value = f(h, m, self.a[i])
-                            cum_y = self.sum_ill(y[j, m, :], t)
-                            infect_force = self.lam_m[m] * self.M[i][j] * cum_y * f_value / rho[i]
-                            infect_force_list.append(infect_force)
-                            temp += infect_force
-                        inf_force_per_strain.append(temp)
-
-                    infect_force_total = sum(infect_force_list)
-                    real_infected = min(infect_force_total, 1.0) * x[i, h, t]
-                    x[i, h, t + 1] -= real_infected
-
-                    if infect_force_total > 0:
-                        for m in range(strains_num):
-                            real_infected_m = real_infected * inf_force_per_strain[m]
-                            y[i, m, t + 1] += real_infected_m
-                            self.total_recovered[m] += real_infected_m
-
-        return y, population_immunity, rho, []
-
-    def make_simulation_test(self):
-        strains_num = len(self.strains)
-        age_groups_num = len(self.age_groups)
-        history_states_num = len(self.history_states)
-
-        y = np.zeros((age_groups_num, strains_num, self.N + 1))
-        for i in range(age_groups_num):
-            y[i, :, 0] = self.I0[i, :]
-
-        x = np.zeros((age_groups_num, history_states_num, self.N + 1))
-        rho = np.asarray([self.pop_size]).T - self.I0.sum(axis=1).reshape(age_groups_num, 1)
 
         for i in range(age_groups_num):
             exp_list = np.asarray(self.exposed_fraction_h)
@@ -250,8 +202,3 @@ class StrainModel(BRModel):
                             y[i, m, t+1] += inf_force_list[m] / infection_force_total * real_infected
 
         return y, population_immunity, rho, []
-
-
-
-
-

@@ -32,7 +32,7 @@ def main():
     if not data_detail or not model_detail:
         incidence = 'total'
 
-    contact_matrix = get_contact_matrix(contact_matrix_path)
+    contact_matrix = [[6.528]]  #  get_contact_matrix(contact_matrix_path)
     epidemic_data, pop_size = prepare_calibration_data(path, incidence, age_groups, strains, exposure_year)
 
     experiment_setter = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu)

@@ -99,7 +99,7 @@ class BaseOptimizer:
         # Launching the simulation for a given parameter value and aligning the result to model
 
         self.model.init_simul_params(exposed_list, lam_list, a)
-        infected_pop, self.population_immunity, self.active_population, self.r0 = self.model.make_simulation_test()
+        infected_pop, self.population_immunity, self.active_population, self.r0 = self.model.make_simulation()
         inf_shape = infected_pop.shape
         infected_pop = infected_pop.reshape(inf_shape[0] * inf_shape[1], inf_shape[2])
         self.df_simul_daily = pd.DataFrame(infected_pop.T, columns=self.groups)
@@ -161,7 +161,7 @@ class BaseOptimizer:
         print("Assessing the best initial point, this might take some time...")
         state, e = initFinderObj.anneal()
         print("Initial state: ", state)
-        optim_result = minimize(self.fit_function, state, method='L-BFGS-B', bounds=param_range)  # SLSQP
+        optim_result = minimize(self.fit_function, state, method='Nelder-Mead', bounds=param_range)  # SLSQP, L-BFGS-B
 
         '''sampler = qmc.LatinHypercube(d=7)
         sampled_params = sampler.random(n=1000)
@@ -242,8 +242,8 @@ class BaseOptimizer:
 
         else:
             opt_result, opt_params = self.run_calibration()
-            #opt_params, opt_distance = self.optimize_lhs()
-            #print("Optimal distance: ", opt_distance)
+            # opt_params, opt_distance = self.optimize_lhs()
+            # print("Optimal distance: ", opt_distance)
 
         exposed_opt_list, lambda_opt_list, a_opt = pr.get_opt_params(opt_params,
                                                                      self.incidence_type,

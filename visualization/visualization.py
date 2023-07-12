@@ -71,7 +71,7 @@ def plot_fitting(original_data: DataFrame,
                     label=f'Calibration data ({label})')
 
         ax.plot(simulated_data.loc[:last_point_ind, label],
-                label=f'Model fit({label})', color=colors[i])
+                label=f'Model fit ({label})', color=colors[i])
         if r_squared:
             plt.text(0.05, 0.6 - (i * 0.05), "$R^2$={}".format(round(r_squared[i], 2)),
                      fontsize=16, color=colors[i], horizontalalignment='left',
