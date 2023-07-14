@@ -172,6 +172,8 @@ class StrainModel(BRModel):
         for i in range(age_groups_num):
             x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1 - self.mu) * rho[i]
 
+        r0 = [0] * self.strains_num
+
         population_immunity = np.zeros((strains_num, self.N + 1))
 
         for t in range(self.N):
@@ -188,6 +190,8 @@ class StrainModel(BRModel):
                         for j in range(age_groups_num):
                             f_value = f(h, m, self.a[i])
                             cum_y = self.sum_ill(y[j, m, :], t)
+                            if t == 0:
+                                r0[m] = (self.lam_m[m] * self.M[i][j] / (1 / 6))  # Contact rate / rate of removal
                             infect_force = self.lam_m[m] * self.M[i][j] * cum_y * f_value / rho[i]
                             infect_force_list.append(infect_force)
                             temp += infect_force
@@ -203,7 +207,7 @@ class StrainModel(BRModel):
                             y[i, m, t + 1] += real_infected_m
                             self.total_recovered[m] += real_infected_m
 
-        return y, population_immunity, rho, []
+        return y, population_immunity, rho, r0
 
     def make_simulation_test(self):
         strains_num = len(self.strains)
