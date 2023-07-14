@@ -60,18 +60,18 @@ def plot_fitting(original_data: DataFrame,
     labels = [item.replace('15 и ст.', '15+').replace('_', " ")
               for item in list(simulated_data.columns)]
 
-    for i, label in enumerate(labels):
+    for i, column in enumerate(simulated_data.columns):
         if predict:
-            ax.plot(original_data.loc[:, label], 'o', color='white',
-                    markeredgecolor=colors[i], label=f'Original data ({label})')
-            ax.plot(calibration_data.loc[:, label], 'o', color=colors[i],
-                    label=f'Calibration data ({label})')
+            ax.plot(original_data.loc[:, column], 'o', color='white',
+                    markeredgecolor=colors[i], label=f'Original data ({labels[i]})')
+            ax.plot(calibration_data.loc[:, column], 'o', color=colors[i],
+                    label=f'Calibration data ({labels[i]})')
         else:
-            ax.plot(original_data.loc[:, label], 'o', color=colors[i],
-                    label=f'Calibration data ({label})')
+            ax.plot(original_data.loc[:, column], 'o', color=colors[i],
+                    label=f'Calibration data ({labels[i]})')
 
-        ax.plot(simulated_data.loc[:last_point_ind, label],
-                label=f'Model fit ({label})', color=colors[i])
+        ax.plot(simulated_data.loc[:last_point_ind, column],
+                label=f'Model fit ({labels[i]})', color=colors[i])
         if r_squared:
             plt.text(0.05, 0.6 - (i * 0.05), "$R^2$={}".format(round(r_squared[i], 2)),
                      fontsize=16, color=colors[i], horizontalalignment='left',
