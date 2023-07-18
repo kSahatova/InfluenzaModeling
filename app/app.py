@@ -1,47 +1,59 @@
+import dash
 import pandas as pd
 
-from dash import Dash, html, dcc, Input, Output, State
+from dash import Dash, html, dcc, Input, Output, State, ALL
 import dash_bootstrap_components as dbc
 
 import plotly.graph_objects as go
 
-from build_model import get_data_and_model
+from build_model import get_data_and_model, prepare_exposed_list
 from optimizers.aux_functions import data_functions as dtf
 from optimizers.aux_functions import weights_for_data_functions as weights_for_data
 
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app.config.suppress_callback_exceptions = True
 
-
+exposed_sliders = [
+                    dcc.Slider(min=0, max=1, step=0.01, value=0.55,
+                               marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 0},
+                               tooltip={"placement": "bottom", "always_visible": True}),
+                    dcc.Slider(min=0, max=1, step=0.01, value=0.2,
+                               marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 1},
+                               tooltip={"placement": "bottom", "always_visible": True}),
+                    dcc.Slider(min=0, max=1, step=0.01, value=0.61,
+                               marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 2},
+                               tooltip={"placement": "bottom", "always_visible": True})
+                ]
+lambda_sliders = [
+                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.19,
+                               marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 0},
+                               tooltip={"placement": "bottom", "always_visible": True}),
+                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.06,
+                               marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 1},
+                               tooltip={"placement": "bottom", "always_visible": True}),
+                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.197,
+                               marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 2},
+                               tooltip={"placement": "bottom", "always_visible": True})
+                ]
 app.layout = \
     dbc.Container([
         dbc.Row([
             dbc.Col([
                 html.H2(children='Parameters', id='params', style={'margin': '20px 20px'}),
+                html.H5('Choose incidence type', style={'margin': '20px 20px'}),
+                dcc.RadioItems(
+                    options=[{'label': 'multi age', 'value': 'age-group'},
+                             {'label': 'multi strain', 'value': 'strain'},
+                             {'label': 'multi strain-age', 'value': 'strain_age-group'}],
+                    id='incidence', inline=True),
+
                 html.H3(children='exposed', id='exp_title', style={'margin': '20px 20px'}),
-                html.Div([
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.55,
-                               marks={0: '0', 1: '1'}, id='exposed_AH1N1',
-                               tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.2,
-                               marks={0: '0', 1: '1'}, id='exposed_AH3N2',
-                               tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.61,
-                               marks={0: '0', 1: '1'}, id='exposed_B',
-                               tooltip={"placement": "bottom", "always_visible": True})
-                ]),
+                html.Div(children=exposed_sliders,
+                         id='exp-sliders-container'),
+
                 html.H3(children='lambda', style={'margin': '0px 20px'}),
-                html.Div([
-                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.19,
-                               marks={0: '0', 1.5: '1.5'}, id='lambda_AH1N1',
-                               tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.06,
-                               marks={0: '0', 1.5: '1.5'}, id='lambda_AH3N2',
-                               tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.197,
-                               marks={0: '0', 1.5: '1.5'}, id='lambda_B',
-                               tooltip={"placement": "bottom", "always_visible": True})
-                ]),
+                html.Div(children=lambda_sliders, id='lambda-sliders-container'),
 
                 html.H3(children='a', style={'margin': '0px 20px'}),
                 html.Div([
@@ -58,7 +70,7 @@ app.layout = \
                            marks={0: '0', 100: '1'}, id='delta',
                            tooltip={"placement": "bottom", "always_visible": True}),
                 dbc.Button("Make simulation", color="primary",
-                           id='simulation-button', style={'margin': '40px 20px 0px 20px'})
+                           id='simulation-button', style={'margin': '40px 20px 0px 20px'})  # 'display': 'none'
 
             ], xs=4, md=4, lg=4, xl=4),
             dbc.Col([
@@ -70,40 +82,66 @@ app.layout = \
 
 
 @app.callback(
+    [Output('exp-sliders-container', 'children'),
+     Output('lambda-sliders-container', 'children')],
+
+    Input('incidence', 'value')
+)
+def update_components(incidence):
+    global exposed_sliders, lambda_sliders
+    if incidence == 'age-group':
+        reduced_exposed_sliders = [
+            dcc.Slider(min=0, max=1, step=0.01, value=0.55,
+                       marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 0},
+                       tooltip={"placement": "bottom", "always_visible": True}),
+            dcc.Slider(min=0, max=1, step=0.01, value=0.2,
+                       marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 1},
+                       tooltip={"placement": "bottom", "always_visible": True})
+        ]
+        reduced_lambda_sliders = [
+            dcc.Slider(min=0, max=1.5, step=0.0001, value=0.19,
+                       marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 0},
+                       tooltip={"placement": "bottom", "always_visible": True}),
+        ]
+        return [reduced_exposed_sliders, reduced_lambda_sliders]
+
+    return [exposed_sliders, lambda_sliders]
+
+
+@app.callback(
     Output('model-fit', 'figure'),
     Input('simulation-button', 'n_clicks'),
-    State('exposed_AH1N1', 'value'),
-    State('exposed_AH3N2', 'value'),
-    State('exposed_B', 'value'),
+    Input('incidence', 'value'),
 
-    State('lambda_AH1N1', 'value'),
-    State('lambda_AH3N2', 'value'),
-    State('lambda_B', 'value'),
+    Input({'type': 'exposed', 'index': ALL}, 'value'),
+    Input({'type': 'lambda', 'index': ALL}, 'value'),
 
     State('a', 'value'),
     State('mu', 'value'),
     State('delta', 'value')
 )
-def update_output_div(_, exp_AH1N1, exp_AH3N2, exp_B,
-                      lambda_AH1N1, lambda_AH3N2, lambda_B,
-                      a, mu, delta):
-    print(exp_AH1N1, exp_AH3N2, exp_B, lambda_AH1N1, lambda_AH3N2, lambda_B, a)
+def update_output_div(_, incidence, exposed_values,
+                      lambda_values, a, mu, delta):
+    print(dash.callback_context.inputs_list)
+    print(exposed_values, lambda_values, a)
+
     colors = ['blue', 'green', 'orange']
-    strains = ['A(H1N1)pdm09', 'A(H3N2)', 'B']
-    exposed_list = [exp_AH1N1, exp_AH3N2, exp_B]
+    groups = []
 
-    sum_exposed = sum(exposed_list)
-    if sum_exposed < 1:
-        exposed_list.append(1 - sum_exposed)
-    else:
-        exposed_list = [item / sum_exposed for item in exposed_list]
-        exposed_list.append(0)
+    if incidence == 'age-group':
+        groups = ['0-14', '15 и ст.']
 
-    lam_list = [lambda_AH1N1, lambda_AH3N2, lambda_B]
+    elif incidence == 'strain':
+        groups = ['A(H1N1)pdm09', 'A(H3N2)', 'B']
+
+    exposed_list = exposed_values
+    lam_list = lambda_values
     a_list = [a]
+    exposed_list = prepare_exposed_list(incidence, exposed_list)
 
-    epid_data, model_obj, year = get_data_and_model(mu)
+    epid_data, model_obj, year = get_data_and_model(mu, incidence)
     model_obj.init_simul_params(exposed_list=exposed_list, lam_list=lam_list, a=a_list)
+    model_obj.init_attributes()
     simul_data, _, _, _ = model_obj.make_simulation()
 
     days_num = simul_data.shape[2]
@@ -112,40 +150,40 @@ def update_output_div(_, exp_AH1N1, exp_AH3N2, exp_B,
 
     epid_data.index = epid_data.reset_index().index + delta
 
-    simul_data = pd.DataFrame(simul_weekly, columns=strains)
+    simul_data = pd.DataFrame(simul_weekly, columns=groups)
     m, n = epid_data.index[0], epid_data.index[-1]
     # simul_data = simul_data.iloc[:n+10, :]
 
-    data_weights = weights_for_data.getWeights4Data(epid_data, strains)
-    res2_list = dtf.find_residuals_weighted_list(epid_data, strains, data_weights)
+    data_weights = weights_for_data.getWeights4Data(epid_data, groups)
+    res2_list = dtf.find_residuals_weighted_list(epid_data, groups, data_weights)
 
     sum_list = []
 
-    for strain in strains:
-        x = epid_data[strain]
-        y = simul_data[strain]
-        sum_ = sum([data_weights[strain][i] * pow(x[m+i] - y[m+i], 2) for i in range(len(x))])
+    for group in groups:
+        x = epid_data[group]
+        y = simul_data[group]
+        sum_ = sum([data_weights[group][i] * pow(x[m + i] - y[m + i], 2) for i in range(len(x))])
         sum_list.append(sum_)
 
     r_squared = [1 - fun_val / res2 for fun_val, res2 in zip(sum_list, res2_list)]
 
     fig = go.Figure()
-    for i, strain in enumerate(simul_data.columns):
-        fig.add_trace(go.Scatter(x=epid_data[strain].index,
-                                 y=epid_data[strain],
-                      mode='markers',
-                      legendgroup='data',
-                      marker={'color': colors[i]},
-                      name='Calibration data ' + strain)
+    for i, group in enumerate(simul_data.columns):
+        fig.add_trace(go.Scatter(x=epid_data[group].index,
+                                 y=epid_data[group],
+                                 mode='markers',
+                                 legendgroup='data',
+                                 marker={'color': colors[i]},
+                                 name='Calibration data ' + group)
                       )
 
-    for i, strain in enumerate(simul_data.columns):
-        fig.add_trace(go.Scatter(x=simul_data[strain].index[:n+10],
-                                 y=simul_data[strain][:n+10],
-                      mode='lines',
-                      legendgroup='model-fit',
-                      marker={'color': colors[i]},
-                      name=strain))
+    for i, group in enumerate(simul_data.columns):
+        fig.add_trace(go.Scatter(x=simul_data[group].index[:n + 10],
+                                 y=simul_data[group][:n + 10],
+                                 mode='lines',
+                                 legendgroup='model-fit',
+                                 marker={'color': colors[i]},
+                                 name=group))
     for i, r2 in enumerate(r_squared):
         fig.add_annotation(text='R2: '+str(round(r2, 2)), showarrow=False,
                            x=1, xshift=0, yshift=i*15 + 100, font={'color': colors[i]})

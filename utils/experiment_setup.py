@@ -5,6 +5,7 @@ from pandas import DataFrame
 
 from models import BR_model
 from models.BR_model import AgeModel, StrainModel
+from models.BR_model_test import BRModel
 
 from optimizers.base_optimizer import BaseOptimizer
 from optimizers.optimizer_age import AgeModelOptimizer
@@ -23,10 +24,10 @@ class ExperimentalSetup:
     def get_model_and_optimizer(self):
         model, optimizer = None, None
         if self.incidence_type == 'age-group':
-            model = AgeModel
+            model = BRModel  # AgeModel
             optimizer = AgeModelOptimizer
         elif self.incidence_type in ['strain_age-group', 'strain']:
-            model = StrainModel
+            model = BRModel  # StrainModel
             optimizer = StrainModelOptimizer
 
         return model, optimizer

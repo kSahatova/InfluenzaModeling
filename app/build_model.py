@@ -6,9 +6,10 @@ from utils.experiment_setup import ExperimentalSetup
 from data.data_preprocessing import prepare_calibration_data
 
 from utils.utils import get_config
+from data.data_preprocessing import get_contact_matrix
 
 
-def get_data_and_model(mu):
+def get_data_and_model(mu, incidence):
     config = get_config('../config.yaml')
 
     path = config['data_path']
@@ -17,9 +18,8 @@ def get_data_and_model(mu):
 
     age_groups = config['age_groups']
     strains = config['strains']
-    incidence = config['INCIDENCE_TYPE']
 
-    contact_matrix = [[6.528]]
+    contact_matrix = get_contact_matrix('../'+contact_matrix_path)
     epid_data, pop_size = prepare_calibration_data('../'+path, incidence, age_groups, strains, exposure_year)
 
     factory = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu)
@@ -29,9 +29,19 @@ def get_data_and_model(mu):
     return epid_data, model_obj, exposure_year
 
 
-def make_simulation():
-    return
+def prepare_exposed_list(incidence, exposed_list):
+    if incidence == 'age-group':
+        exposed_cor = []
+        for item in exposed_list:
+            exposed_cor.append([item, 1 - item])
+
+    elif incidence == 'strain':
+        sum_exposed = sum(exposed_list)
+        if sum_exposed < 1:
+            exposed_list.append(1 - sum_exposed)
+        else:
+            exposed_list = [item / sum_exposed for item in exposed_list]
+            exposed_list.append(0)
+    return exposed_list
 
 
-if __name__ == '__main__':
-    get_data_and_model()
