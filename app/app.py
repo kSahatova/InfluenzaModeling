@@ -6,6 +6,8 @@ import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
 from build_model import get_data_and_model
+from optimizers.aux_functions import data_functions as dtf
+from optimizers.aux_functions import weights_for_data_functions as weights_for_data
 
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -18,42 +20,42 @@ app.layout = \
                 html.H2(children='Parameters', id='params', style={'margin': '20px 20px'}),
                 html.H3(children='exposed', id='exp_title', style={'margin': '20px 20px'}),
                 html.Div([
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.44,
+                    dcc.Slider(min=0, max=1, step=0.01, value=0.55,
                                marks={0: '0', 1: '1'}, id='exposed_AH1N1',
                                tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.25,
+                    dcc.Slider(min=0, max=1, step=0.01, value=0.2,
                                marks={0: '0', 1: '1'}, id='exposed_AH3N2',
                                tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.55,
+                    dcc.Slider(min=0, max=1, step=0.01, value=0.61,
                                marks={0: '0', 1: '1'}, id='exposed_B',
                                tooltip={"placement": "bottom", "always_visible": True})
                 ]),
                 html.H3(children='lambda', style={'margin': '0px 20px'}),
                 html.Div([
-                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.18,
+                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.19,
                                marks={0: '0', 1.5: '1.5'}, id='lambda_AH1N1',
                                tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.07,
+                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.06,
                                marks={0: '0', 1.5: '1.5'}, id='lambda_AH3N2',
                                tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.21,
+                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.197,
                                marks={0: '0', 1.5: '1.5'}, id='lambda_B',
                                tooltip={"placement": "bottom", "always_visible": True})
                 ]),
 
                 html.H3(children='a', style={'margin': '0px 20px'}),
                 html.Div([
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.05,
+                    dcc.Slider(min=0, max=1, step=0.01, value=0.12,
                                marks={0: '0', 1: '1'}, id='a',
                                tooltip={"placement": "bottom", "always_visible": True})
                     ]),
                 html.H3(children='mu', style={'margin': '20px 20px'}),
-                dcc.Slider(min=0, max=1, step=0.01, value=0.2,
+                dcc.Slider(min=0, max=1, step=0.01, value=0.5,
                            marks={0: '0', 1: '1'}, id='mu',
                            tooltip={"placement": "bottom", "always_visible": True}),
                 html.H3(children='delta',  style={'margin': '20px 20px'}),
-                dcc.Slider(min=0, max=1000, step=1, value=40,
-                           marks={0: '0', 1: '1'}, id='delta',
+                dcc.Slider(min=0, max=100, step=1, value=0,
+                           marks={0: '0', 100: '1'}, id='delta',
                            tooltip={"placement": "bottom", "always_visible": True}),
                 dbc.Button("Make simulation", color="primary",
                            id='simulation-button', style={'margin': '40px 20px 0px 20px'})
@@ -63,7 +65,6 @@ app.layout = \
                 html.Div([dcc.Graph(id='model-fit')],
                          style={'margin': '40px'})
             ], xs=7, md=7, lg=7, xl=7)
-
         ]),
     ], fluid=True, className='container-fluid')
 
@@ -88,6 +89,7 @@ def update_output_div(_, exp_AH1N1, exp_AH3N2, exp_B,
                       a, mu, delta):
     print(exp_AH1N1, exp_AH3N2, exp_B, lambda_AH1N1, lambda_AH3N2, lambda_B, a)
     colors = ['blue', 'green', 'orange']
+    strains = ['A(H1N1)pdm09', 'A(H3N2)', 'B']
     exposed_list = [exp_AH1N1, exp_AH3N2, exp_B]
 
     sum_exposed = sum(exposed_list)
@@ -100,44 +102,64 @@ def update_output_div(_, exp_AH1N1, exp_AH3N2, exp_B,
     lam_list = [lambda_AH1N1, lambda_AH3N2, lambda_B]
     a_list = [a]
 
-    epid_data, model_obj = get_data_and_model(mu)
+    epid_data, model_obj, year = get_data_and_model(mu)
     model_obj.init_simul_params(exposed_list=exposed_list, lam_list=lam_list, a=a_list)
     simul_data, _, _, _ = model_obj.make_simulation()
 
     days_num = simul_data.shape[2]
     wks_num = int(days_num / 7.0)
     simul_weekly = [simul_data[0, :, i * 7: i * 7 + 7].sum(axis=1) for i in range(wks_num)]
-    simul_data = pd.DataFrame(simul_weekly, columns=['A(H1N1)pdm09', 'A(H3N2)', 'B'])
-    simul_data = simul_data.iloc[:epid_data.index[-1], :]
+
+    epid_data.index = epid_data.reset_index().index + delta
+
+    simul_data = pd.DataFrame(simul_weekly, columns=strains)
+    m, n = epid_data.index[0], epid_data.index[-1]
+    # simul_data = simul_data.iloc[:n+10, :]
+
+    data_weights = weights_for_data.getWeights4Data(epid_data, strains)
+    res2_list = dtf.find_residuals_weighted_list(epid_data, strains, data_weights)
+
+    sum_list = []
+
+    for strain in strains:
+        x = epid_data[strain]
+        y = simul_data[strain]
+        sum_ = sum([data_weights[strain][i] * pow(x[m+i] - y[m+i], 2) for i in range(len(x))])
+        sum_list.append(sum_)
+
+    r_squared = [1 - fun_val / res2 for fun_val, res2 in zip(sum_list, res2_list)]
 
     fig = go.Figure()
     for i, strain in enumerate(simul_data.columns):
         fig.add_trace(go.Scatter(x=epid_data[strain].index,
                                  y=epid_data[strain],
                       mode='markers',
+                      legendgroup='data',
                       marker={'color': colors[i]},
                       name='Calibration data ' + strain)
                       )
 
     for i, strain in enumerate(simul_data.columns):
-        fig.add_trace(go.Scatter(x=simul_data[strain].index + delta,
-                                 y=simul_data[strain],
+        fig.add_trace(go.Scatter(x=simul_data[strain].index[:n+10],
+                                 y=simul_data[strain][:n+10],
                       mode='lines',
+                      legendgroup='model-fit',
                       marker={'color': colors[i]},
                       name=strain))
+    for i, r2 in enumerate(r_squared):
+        fig.add_annotation(text='R2: '+str(round(r2, 2)), showarrow=False,
+                           x=1, xshift=0, yshift=i*15 + 100, font={'color': colors[i]})
     fig.update_layout(
-        autosize=False,
-        width=1200,
-        height=600,
-        margin=dict(
-            l=50,
-            r=50,
-            b=100,
-            t=100,
-            pad=4
-        ),
+        autosize=True,
+        margin=dict(l=50, r=50, b=100, t=100, pad=4),
         paper_bgcolor="white",
-    )
+        title={
+            'text': f"Saint Petersburg, {year} - {year + 1}",
+            'y': 0.9,
+            'x': 0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'})
+    fig.update_layout(legend=dict(orientation="h", yanchor="top", xanchor="left", y=-0.3, x=0))
     fig.update_xaxes(title_text="Weeks")
     fig.update_yaxes(title_text="Incidence, cases")
 

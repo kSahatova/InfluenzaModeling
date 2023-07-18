@@ -26,7 +26,7 @@ def get_data_and_model(mu):
     model, _ = factory.get_model_and_optimizer()
     model_obj = factory.setup_model(model)
 
-    return epid_data, model_obj
+    return epid_data, model_obj, exposure_year
 
 
 def make_simulation():

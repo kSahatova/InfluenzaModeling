@@ -73,6 +73,16 @@ class BaseOptimizer:
         """Puts bigger weights to the data points that are closer to the peak"""
         return weights_for_data.getWeights4Data(df, self.groups)
 
+    def update_delta(self):
+        peak_indices_real, _ = dtf.max_elem_indices(self.df_data_weekly, self.groups)
+        peak_indices_model, peak_values_model = dtf.max_elem_indices(self.df_simul_weekly, self.groups)
+
+        peak_indices_model = [(peak_index + self.tpeak_bias_aux) for peak_index in peak_indices_model]
+        delta_list_prelim = [peak_index_model - peak_index_real
+                             for peak_index_model, peak_index_real in
+                             zip(peak_indices_model, peak_indices_real)]
+        self.delta = delta_list_prelim[dtf.max_elem_index(peak_values_model)]
+
     def update_data_alignment(self):
         """Updates index of the original data"""
         self.df_data_weekly.index = [item + self.delta for item in range(len(self.df_data_weekly))]
@@ -84,16 +94,6 @@ class BaseOptimizer:
                                      list(self.df_data_weekly.index)]
         self.calib_data_weekly.index = [item - list(self.calib_data_weekly.index)[0] for item in
                                         list(self.calib_data_weekly.index)]
-
-    def update_delta(self):
-        peak_indices_real, _ = dtf.max_elem_indices(self.df_data_weekly, self.groups)
-        peak_indices_model, peak_values_model = dtf.max_elem_indices(self.df_simul_weekly, self.groups)
-
-        peak_indices_model = [(peak_index + self.tpeak_bias_aux) for peak_index in peak_indices_model]
-        delta_list_prelim = [peak_index_model - peak_index_real
-                             for peak_index_model, peak_index_real in
-                             zip(peak_indices_model, peak_indices_real)]
-        self.delta = delta_list_prelim[dtf.max_elem_index(peak_values_model)]
 
     def find_model_fit(self, exposed_list, lam_list, a):
         # Launching the simulation for a given parameter value and aligning the result to model
@@ -149,7 +149,7 @@ class BaseOptimizer:
             init_params[i] = np.random.uniform(*param_range, 1)
         return init_params, param_ranges
 
-    def optimize(self, param_init, param_range, tpeak_bias_aux_cur):  # optimize
+    def optimize(self, param_init, param_range, tpeak_bias_aux_cur):
         self.tpeak_bias_aux = tpeak_bias_aux_cur
         initFinderObj = InitValueFinder(param_init,
                                         param_range,
@@ -163,19 +163,6 @@ class BaseOptimizer:
         print("Initial state: ", state)
         optim_result = minimize(self.fit_function, state, method='Nelder-Mead', bounds=param_range)  # SLSQP, L-BFGS-B
 
-        '''sampler = qmc.LatinHypercube(d=7)
-        sampled_params = sampler.random(n=1000)
-        l_bounds = [0.05, 0.05, 0.05, 0.01, 0.01, 0.01, 0.05]
-        u_bounds = [0.9, 0.9, 0.9, 0.2, 0.2, 0.2, 1.0]
-        sampled_params = qmc.scale(sampled_params, l_bounds, u_bounds)
-        optim_distance = 10e30
-        optim_result = None
-        for params in sampled_params:
-            print("Initial state: ", params)
-            result = minimize(self.fit_function, params, method='L-BFGS-B', bounds=param_range)  # SLSQP
-            if result.fun < optim_distance:
-                optim_distance = result.fun
-                optim_result = result'''
         return self, optim_result
 
     def optimize_lhs(self):
