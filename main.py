@@ -4,7 +4,7 @@ from datetime import datetime
 from utils.experiment_setup import ExperimentalSetup
 from data.data_preprocessing import get_contact_matrix, prepare_calibration_data
 
-from visualization.visualization import plot_fitting, plot_r0
+from visualization.visualization import plot_fitting, plot_r0, plot_rt
 from utils.utils import get_config, save_results
 
 
@@ -44,6 +44,7 @@ def main():
     model_fit = optimizer.df_simul_weekly.dropna(axis=1)
     incidence_data = optimizer.df_data_weekly.loc[:, model_fit.columns]
     r0 = optimizer.r0
+    rt = optimizer.rt
     calibration_data = optimizer.calib_data_weekly.loc[:, model_fit.columns]
     r_squared = optimizer.R_square_list
 
@@ -55,8 +56,9 @@ def main():
     plot_fitting(incidence_data, calibration_data, model_fit, city_eng,
                  exposure_year, file_path_fitting, r_squared=r_squared, predict=predict)
     file_path_r0 = osp.join(full_path, f'r0_{incidence}_{city}_{exposure_year}.png')
-    print("MIRA R0: ", r0)
     plot_r0(r0, city_eng, exposure_year, file_path_r0)
+    file_path_rt = osp.join(full_path, f'rt_{incidence}_{city}_{exposure_year}.png')
+    plot_rt(rt, city_eng, exposure_year, file_path_rt)
 
 
 if __name__ == '__main__':

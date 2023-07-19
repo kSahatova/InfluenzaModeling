@@ -7,6 +7,20 @@ from matplotlib.colors import BASE_COLORS, TABLEAU_COLORS
 from typing import List
 from sklearn.metrics import r2_score
 
+def plot_rt(rt: DataFrame, city: str, year: int, output_file: str):
+    colors = list(TABLEAU_COLORS.keys()) + list(BASE_COLORS.keys())
+
+    for i, partial_rt in enumerate(rt):
+        print("MIRA AQUI ALGO PASA: ", partial_rt[: 30])  # First 10 are meaningless
+        plt.plot(partial_rt[11:], color=colors[i])
+
+    plt.axhline(y=1.0, color='black', linestyle='--')
+    plt.title(f"{city} ({year} $-$ {year + 1})")
+    plt.xlabel('Days')
+    plt.ylabel('Rt')
+    plt.legend()
+    plt.savefig(output_file, dpi=150, bbox_inches='tight')
+    plt.show()
 
 def plot_r0(r0: DataFrame, city: str, year: int, output_file: str):
     colors = list(TABLEAU_COLORS.keys()) + list(BASE_COLORS.keys())
@@ -57,8 +71,9 @@ def plot_fitting(original_data: DataFrame,
 
     ax = plt.figure(figsize=(10, 7)).add_subplot(111)
     colors = list(TABLEAU_COLORS.keys()) + list(BASE_COLORS.keys())
-    labels = [item.replace('15 и ст.', '15+').replace('_', " ")
-              for item in list(simulated_data.columns)]
+    # labels = [item.replace('15 и ст.', '15+').replace('_', " ")
+    #           for item in list(simulated_data.columns)]
+    labels = ['0-14', '15 и ст.']
 
     for i, label in enumerate(labels):
         if predict:
@@ -67,11 +82,12 @@ def plot_fitting(original_data: DataFrame,
             ax.plot(calibration_data.loc[:, label], 'o', color=colors[i],
                     label=f'Calibration data ({label})')
         else:
+            print("ORIGINAL_DATA: ", original_data.columns)
             ax.plot(original_data.loc[:, label], 'o', color=colors[i],
                     label=f'Calibration data ({label})')
 
         ax.plot(simulated_data.loc[:last_point_ind, label],
-                label=f'Model fit({label})', color=colors[i])
+                label=f'Model fit ({label})', color=colors[i])
         if r_squared:
             plt.text(0.05, 0.6 - (i * 0.05), "$R^2$={}".format(round(r_squared[i], 2)),
                      fontsize=16, color=colors[i], horizontalalignment='left',

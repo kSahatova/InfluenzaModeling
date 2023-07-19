@@ -100,10 +100,15 @@ class AgeModel(BRModel):
         history_states_num = len(self.history_states)
 
         y = np.zeros((age_groups_num, self.N + 1))
+        y_daily = np.zeros((age_groups_num, self.N + 1 + 8))  # 2 x (1801 + 8) | strains x N
         y[:, 0] = self.I0
-        x = np.zeros((age_groups_num, history_states_num, self.N + 1))
 
+        x = np.zeros((age_groups_num, history_states_num, self.N + 1))
         rho = np.asarray(self.pop_size) - self.I0
+
+        r0 = np.zeros(age_groups_num)
+        rt = np.zeros((age_groups_num, self.N + 1))
+
         total_pop_size = rho.sum()
         for i in range(age_groups_num):
             x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1-self.mu) * rho[i]  # (1-self.mu) *
@@ -130,6 +135,10 @@ class AgeModel(BRModel):
                             m = self.strains.index(self.strains[h])
 
                         f_value = f(h, m, a)
+
+                        if t == 0:
+                            r0[i] = (self.lam_m[0] * self.M[i][j] / (1 / 6))  # 1/6
+
                         infect_force = self.lam_m[0] * self.M[i][j] * self.sum_ill(y[j], t) * f_value / rho[i]
                         infect_force_list.append(infect_force)
 
@@ -137,6 +146,11 @@ class AgeModel(BRModel):
                     real_infected = min(infect_force_total, 1.0) * x[i, h, t]
                     x[i, h, t + 1] -= real_infected
                     y[i, t+1] += real_infected
+
+                    y_daily[i, t + 8] = real_infected
+                    if y_daily[i, t] != 0:
+                        rt[i, t + 1] = real_infected / y_daily[i, t]
+                        # rt[i, m, t + 1] = r0[i, m] * (x[i, h, t+1] / x[i, h, 0])
                     self.total_recovered[i] += real_infected
 
                     if t > recovery_days_num - 1:
@@ -145,7 +159,7 @@ class AgeModel(BRModel):
                         else:
                             population_immunity[i][t + 1] = population_immunity[i][t] + real_infected
 
-        return y, population_immunity, rho, []
+        return y, population_immunity, rho, r0, rt
 
 
 class StrainModel(BRModel):
@@ -163,63 +177,15 @@ class StrainModel(BRModel):
         history_states_num = len(self.history_states)
 
         y = np.zeros((age_groups_num, strains_num, self.N + 1))
+        y_daily = np.zeros((age_groups_num, strains_num, self.N + 1 + 8))  # 3 x (1801 + 8) | strains x N
         for i in range(age_groups_num):
             y[i, :, 0] = self.I0[i, :]
 
         x = np.zeros((age_groups_num, history_states_num, self.N + 1))
         rho = np.asarray([self.pop_size]).T - self.I0.sum(axis=1).reshape(age_groups_num, 1)
-        total_pop_size = rho.sum()
-        for i in range(age_groups_num):
-            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1 - self.mu) * rho[i]
 
-        r0 = [0] * self.strains_num
-
-        population_immunity = np.zeros((strains_num, self.N + 1))
-
-        for t in range(self.N):
-            for i, age in enumerate(self.age_groups):
-                for h, state in enumerate(self.history_states):
-                    x[i, h, t + 1] = x[i, h, t]
-
-                    infect_force_list = []
-                    inf_force_per_strain = []
-                    a = self.a[i]
-
-                    for m in range(strains_num):
-                        temp = 0
-                        for j in range(age_groups_num):
-                            f_value = f(h, m, self.a[i])
-                            cum_y = self.sum_ill(y[j, m, :], t)
-                            if t == 0:
-                                r0[m] = (self.lam_m[m] * self.M[i][j] / (1 / 6))  # Contact rate / rate of removal
-                            infect_force = self.lam_m[m] * self.M[i][j] * cum_y * f_value / rho[i]
-                            infect_force_list.append(infect_force)
-                            temp += infect_force
-                        inf_force_per_strain.append(temp)
-
-                    infect_force_total = sum(infect_force_list)
-                    real_infected = min(infect_force_total, 1.0) * x[i, h, t]
-                    x[i, h, t + 1] -= real_infected
-
-                    if infect_force_total > 0:
-                        for m in range(strains_num):
-                            real_infected_m = real_infected * inf_force_per_strain[m]
-                            y[i, m, t + 1] += real_infected_m
-                            self.total_recovered[m] += real_infected_m
-
-        return y, population_immunity, rho, r0
-
-    def make_simulation_test(self):
-        strains_num = len(self.strains)
-        age_groups_num = len(self.age_groups)
-        history_states_num = len(self.history_states)
-
-        y = np.zeros((age_groups_num, strains_num, self.N + 1))
-        for i in range(age_groups_num):
-            y[i, :, 0] = self.I0[i, :]
-
-        x = np.zeros((age_groups_num, history_states_num, self.N + 1))
-        rho = np.asarray([self.pop_size]).T - self.I0.sum(axis=1).reshape(age_groups_num, 1)
+        r0 = np.zeros((age_groups_num, strains_num))
+        rt = np.zeros((age_groups_num, strains_num, self.N + 1))
 
         for i in range(age_groups_num):
             exp_list = np.asarray(self.exposed_fraction_h)
@@ -243,6 +209,8 @@ class StrainModel(BRModel):
                             cum_y = self.sum_ill(y[j, m, :], t)
                             f_value = f(h, m, self.a[0])
 
+                            if t == 0:
+                                r0[i, m] = (self.lam_m[m] * self.M[i][j] / (1 / 6))  # 1/6
                             infection_force += betta * cum_y * f_value / rho[i]
                         inf_force_list.append(infection_force)
 
@@ -252,10 +220,9 @@ class StrainModel(BRModel):
                     if infection_force_total > 0:
                         for m in range(strains_num):
                             y[i, m, t+1] += inf_force_list[m] / infection_force_total * real_infected
+                            y_daily[i, m, t + 8] = (real_infected * (inf_force_list[m] / infection_force_total))
+                            if y_daily[i, m, t] != 0:
+                                rt[i, m, t + 1] = (real_infected * (inf_force_list[m] / infection_force_total)) / y_daily[i, m, t]
+                                # rt[i, m, t + 1] = r0[i, m] * (x[i, h, t+1] / x[i, h, 0])
 
-        return y, population_immunity, rho, []
-
-
-
-
-
+        return y, population_immunity, rho, r0, rt

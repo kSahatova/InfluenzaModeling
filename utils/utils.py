@@ -58,31 +58,24 @@ def get_parameters(output_dir):
 
 def get_exposed_ready_for_simulation(exposed_list: List[Any], incidence: str,
                                      age_groups: List[str], strains: List[str]):
-    k_percent_naive = 0
+    exposed_list_cor = []
+    if incidence in ['strain_age-group', 'strain']:
 
-    if incidence in ['total', 'strain']:
-        sum_exposed = sum(exposed_list)
-        if sum_exposed <= 1:  # Summ of exposed less than 100%
-            k_percent_naive = 1 - sum_exposed
-            if incidence == 'age-group':
-                k_percent_naive = 1 - exposed_list[0] - sum_exposed
-        else:
-            exposed_list = [item / sum_exposed for item in exposed_list]
-        exposed_list.append(k_percent_naive)
+        age_groups_num = len(age_groups) if incidence == 'strain_age-group' else 1
+        strains_num = len(strains)
 
-    if incidence == 'strain_age-group':
-        m = len(age_groups)
-        n = len(strains)
+        for i in range(age_groups_num):
+            sum_exposed = sum(exposed_list[i * strains_num:i * strains_num + strains_num])
 
-        for i in range(m):
-            sum_exposed = sum(list([exposed_list[j * m + i] for j in range(n)]))
-            if sum_exposed <= 1:
-                k_percent_naive = 1 - sum_exposed
+            if sum_exposed < 1:
+                temp = [exposed_list[i * strains_num + m] for m in range(strains_num)]
+                temp.append(1 - sum_exposed)
             else:
-                for j, strain in enumerate(strains):
-                    exposed_list[j * m + i] = exposed_list[j * m + i] / sum_exposed
-            exposed_list.append(k_percent_naive)
-    return exposed_list
+                temp = [exposed_list[i * strains_num + m] / sum_exposed for m in range(strains_num)]
+                temp.append(0)
+            exposed_list_cor.append(temp)
+
+    return exposed_list_cor
 
 
 # TODO: rewrite the function to accept paths to files
@@ -100,28 +93,28 @@ def restore_from_saved_data(incidence: str):
 
 
 def restore_fit_from_params(contact_matrix: object, pop_size: float, incidence: str,
-                            age_groups: List[str], strains: List[str]):
+                            age_groups: List[str], strains: List[str], mu: float,
+                            output_dir: str):
 
-    factory = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size)
+    factory = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu)
     model, _ = factory.get_model_and_optimizer()
     model_obj = factory.setup_model(model)
 
-    exposed_list, lam_list, a_list, delta, r_squared = get_parameters(incidence)
+    exposed_list, lam_list, a_list, delta, r_squared = get_parameters(output_dir)
     exposed_list_cor = get_exposed_ready_for_simulation(exposed_list, incidence, age_groups, strains)
 
-    calib_data_path = f'{OUTPUT_DIR}/{incidence}/{CALIBRATION_DATA_FILE}'
+    calib_data_path = f'{output_dir}/{CALIBRATION_DATA_FILE}'
     calib_data = pd.read_csv(calib_data_path, index_col=0)
 
-    orig_data_path = f'{OUTPUT_DIR}/{incidence}/{INCIDENCE_DATA_FILE}'
+    orig_data_path = f'{output_dir}/{INCIDENCE_DATA_FILE}'
     orig_data = pd.read_csv(orig_data_path, index_col=0)
 
     model_obj.init_simul_params(exposed_list=exposed_list_cor, lam_list=lam_list, a=a_list)
-    simul_data, immune_pop, susceptible = model_obj.make_simulation()
+    simul_data, immune_pop, susceptible, _ = model_obj.make_simulation()
 
-    days_num = simul_data.shape[1]
+    days_num = simul_data.shape[2]
     wks_num = int(days_num / 7.0)
-    simul_weekly = [sum([simul_data.T[j] for j in range(i * 7, (i + 1) * 7)])
-                    for i in range(wks_num)]
+    simul_weekly = [simul_data[0, :, i * 7: i * 7 + 7].sum(axis=1) for i in range(wks_num)]
     simul_data = pd.DataFrame(simul_weekly, columns=calib_data.columns)
     return calib_data, simul_data, orig_data, r_squared
 
