@@ -39,13 +39,11 @@ class BRModel:
         self.age_groups = age_groups
         self.strains = strains
 
-        self.history_states = []
+        self.history_states = ['Exposed', 'Not exposed'] if self.incidence_type in ['age-group', 'total'] \
+            else self.strains.copy() + ['Not exposed']
         self.exposed_fraction_h = []  # fractions with different exposure history
         self.lam_m = []
-        self.I0 = []  # TODO: put out to the config file to tweak initially infected persons
-        self.a = []  # Waning immunity level
-
-        self.total_recovered = []  # Recovered from different strains
+        self.a = []
 
     def sum_ill(self, y, t):
         """
@@ -81,106 +79,41 @@ class BRModel:
     def get_recovery_time(self):
         return len(self.q) + 1
 
-    def make_simulation(self):
-        raise NotImplementedError
-
-
-class AgeModel(BRModel):
-    def __init__(self, M, pop_size, mu, incidence_type, age_groups, strains):
-        super().__init__(M, pop_size, mu, incidence_type, age_groups, strains)
-
-        self.I0 = np.ones(len(self.age_groups))
-        self.history_states = ['Exposed', 'Not exposed']
-        self.total_recovered = [0 for _ in range(len(self.age_groups))]
-        self.a_detail = False  # [legacy] change manually if needed
-        self.strains = ['Generic']
-
-    def make_simulation(self):
-        age_groups_num = len(self.age_groups)
-        history_states_num = len(self.history_states)
-
-        y = np.zeros((age_groups_num, self.N + 1))
-        y[:, 0] = self.I0
-        x = np.zeros((age_groups_num, history_states_num, self.N + 1))
-
-        rho = np.asarray(self.pop_size) - self.I0
-        total_pop_size = rho.sum()
-        for i in range(age_groups_num):
-            x[i, :, 0] = np.asarray(self.exposed_fraction_h)[i, :] * (1-self.mu) * rho[i]  # (1-self.mu) *
-
-        population_immunity = np.zeros((age_groups_num, self.N + 1))
-        recovery_days_num = self.get_recovery_time()
-
-        for t in range(self.N):
-            for i, age in enumerate(self.age_groups):
-                for h, state in enumerate(self.history_states):
-                    x[i, h, t + 1] = x[i, h, t]
-
-                    infect_force_list = []
-
-                    for j in range(age_groups_num):
-                        if self.a_detail:
-                            a = self.a[i]   # [legacy] deprecated
-                        else:
-                            a = self.a[0]
-
-                        if state == 'Not exposed':
-                            m = self.strains.index(self.strains[h-1])  # m is strain index
-                        else:
-                            m = self.strains.index(self.strains[h])
-
-                        f_value = f(h, m, a)
-                        infect_force = self.lam_m[0] * self.M[i][j] * self.sum_ill(y[j], t) * f_value / rho[i]
-                        infect_force_list.append(infect_force)
-
-                    infect_force_total = sum(infect_force_list)
-                    real_infected = min(infect_force_total, 1.0) * x[i, h, t]
-                    x[i, h, t + 1] -= real_infected
-                    y[i, t+1] += real_infected
-                    self.total_recovered[i] += real_infected
-
-                    if t > recovery_days_num - 1:
-                        if isinstance(real_infected, np.ndarray):
-                            population_immunity[i][t + 1] = population_immunity[i][t] + real_infected[0]
-                        else:
-                            population_immunity[i][t + 1] = population_immunity[i][t] + real_infected
-
-        return y, population_immunity, rho, []
-
-
-class StrainModel(BRModel):
-    def __init__(self, M, pop_size, mu, incidence_type, age_groups, strains):
-        super().__init__(M, pop_size, mu, incidence_type, age_groups, strains)
-
-        self.history_states = self.strains.copy() + ["No exposure"]
-        self.total_recovered = [0 for _ in range(len(self.strains))]
-        self.age_groups = self.age_groups if self.incidence_type != 'strain' else ['total']
-        self.I0 = np.ones((len(self.age_groups), len(self.strains)))
+    def set_attributes(self):
+        if self.incidence_type in ['age-group', 'total']:
+            # self.history_states = ['Exposed', 'Not exposed']
+            self.strains = ['generic']
+        else:
+            # self.history_states = self.strains.copy() + ["No exposure"]
+            self.age_groups = self.age_groups if self.incidence_type != 'strain' else ['total']
 
     def make_simulation(self):
         strains_num = len(self.strains)
         age_groups_num = len(self.age_groups)
         history_states_num = len(self.history_states)
+        I0 = np.ones((len(self.age_groups), len(self.strains)))
 
         y = np.zeros((age_groups_num, strains_num, self.N + 1))
         for i in range(age_groups_num):
-            y[i, :, 0] = self.I0[i, :]
+            y[i, :, 0] = I0[i, :]
 
         x = np.zeros((age_groups_num, history_states_num, self.N + 1))
-        rho = np.asarray([self.pop_size]).T - self.I0.sum(axis=1).reshape(age_groups_num, 1)
+        rho = np.asarray([self.pop_size]).T - I0.sum(axis=1).reshape(age_groups_num, 1)
 
         for i in range(age_groups_num):
             exp_list = np.asarray(self.exposed_fraction_h)
             if len(exp_list.shape) == 1:
                 exp_list = exp_list.reshape(1, -1)
-            x[i, :, 0] = exp_list[i, :] * (1 - self.mu) * rho[i]
+            x[i, :, 0] = exp_list[i, :] * (1 - self.mu) * rho[i, 0]
+        total_pop_size = sum(rho)
 
+        # todo: add calculation of population immunity from RSCF_Uncertainty repo
         population_immunity = np.zeros((strains_num, self.N + 1))
 
         for t in range(self.N):
             for i in range(age_groups_num):
                 for h, state in enumerate(self.history_states):
-                    x[i, h, t+1] = x[i, h, t]
+                    x[i, h, t + 1] = x[i, h, t]
 
                     inf_force_list = []
 
@@ -191,7 +124,7 @@ class StrainModel(BRModel):
                             cum_y = self.sum_ill(y[j, m, :], t)
                             f_value = f(h, m, self.a[0])
 
-                            infection_force += betta * cum_y * f_value / rho[i]
+                            infection_force += betta * cum_y * f_value / total_pop_size
                         inf_force_list.append(infection_force)
 
                     infection_force_total = sum(inf_force_list)
@@ -199,6 +132,6 @@ class StrainModel(BRModel):
                     x[i, h, t + 1] -= real_infected
                     if infection_force_total > 0:
                         for m in range(strains_num):
-                            y[i, m, t+1] += inf_force_list[m] / infection_force_total * real_infected
+                            y[i, m, t + 1] += inf_force_list[m] / infection_force_total * real_infected
 
         return y, population_immunity, rho, []

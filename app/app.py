@@ -1,7 +1,7 @@
 import dash
 import pandas as pd
 
-from dash import Dash, html, dcc, Input, Output, State, ALL
+from dash import Dash, html, dcc, Input, Output, State, ALL, MATCH
 import dash_bootstrap_components as dbc
 
 import plotly.graph_objects as go
@@ -43,10 +43,10 @@ app.layout = \
                 html.H2(children='Parameters', id='params', style={'margin': '20px 20px'}),
                 html.H5('Choose incidence type', style={'margin': '20px 20px'}),
                 dcc.RadioItems(
-                    options=[{'label': 'multi age', 'value': 'age-group'},
-                             {'label': 'multi strain', 'value': 'strain'},
-                             {'label': 'multi strain-age', 'value': 'strain_age-group'}],
-                    id='incidence', inline=True),
+                    options=[{'label': 'multi age ', 'value': 'age-group'},
+                             {'label': 'multi strain ', 'value': 'strain'},
+                             {'label': 'multi strain-age ', 'value': 'strain_age-group'}],
+                    value='age-group', id='incidence', inline=True),
 
                 html.H3(children='exposed', id='exp_title', style={'margin': '20px 20px'}),
                 html.Div(children=exposed_sliders,
@@ -111,14 +111,15 @@ def update_components(incidence):
 @app.callback(
     Output('model-fit', 'figure'),
     Input('simulation-button', 'n_clicks'),
-    Input('incidence', 'value'),
+    State('incidence', 'value'),
 
-    Input({'type': 'exposed', 'index': ALL}, 'value'),
-    Input({'type': 'lambda', 'index': ALL}, 'value'),
+    State({'type': 'exposed', 'index': ALL}, 'value'),
+    State({'type': 'lambda', 'index': ALL}, 'value'),
 
     State('a', 'value'),
     State('mu', 'value'),
-    State('delta', 'value')
+    State('delta', 'value'),
+    prevent_initial_call=True
 )
 def update_output_div(_, incidence, exposed_values,
                       lambda_values, a, mu, delta):
@@ -141,16 +142,17 @@ def update_output_div(_, incidence, exposed_values,
 
     epid_data, model_obj, year = get_data_and_model(mu, incidence)
     model_obj.init_simul_params(exposed_list=exposed_list, lam_list=lam_list, a=a_list)
-    model_obj.init_attributes()
+    model_obj.set_attributes()
     simul_data, _, _, _ = model_obj.make_simulation()
+    shape = simul_data.shape
+    simul_data = simul_data.reshape(shape[0] * shape[1], shape[2])
+    simul_data = pd.DataFrame(simul_data.T, columns=groups)
 
-    days_num = simul_data.shape[2]
+    days_num = simul_data.shape[0]
     wks_num = int(days_num / 7.0)
-    simul_weekly = [simul_data[0, :, i * 7: i * 7 + 7].sum(axis=1) for i in range(wks_num)]
+    simul_weekly = simul_data.aggregate(func=lambda x: [x[i * 7: i * 7 + 7].sum() for i in range(wks_num)])
 
     epid_data.index = epid_data.reset_index().index + delta
-
-    simul_data = pd.DataFrame(simul_weekly, columns=groups)
     m, n = epid_data.index[0], epid_data.index[-1]
     data_weights = weights_for_data.getWeights4Data(epid_data, groups)
     res2_list = dtf.find_residuals_weighted_list(epid_data, groups, data_weights)
@@ -159,7 +161,7 @@ def update_output_div(_, incidence, exposed_values,
 
     for group in groups:
         x = epid_data[group]
-        y = simul_data[group]
+        y = simul_weekly[group]
         sum_ = sum([data_weights[group][i] * pow(x[m + i] - y[m + i], 2) for i in range(len(x))])
         sum_list.append(sum_)
 
@@ -172,16 +174,16 @@ def update_output_div(_, incidence, exposed_values,
                                  mode='markers',
                                  legendgroup='data',
                                  marker={'color': colors[i]},
-                                 name='Calibration data ' + group)
+                                 name='Data ' + group)
                       )
 
     for i, group in enumerate(simul_data.columns):
-        fig.add_trace(go.Scatter(x=simul_data[group].index[:n + 10],
-                                 y=simul_data[group][:n + 10],
+        fig.add_trace(go.Scatter(x=simul_weekly[group].index[:n + 10],
+                                 y=simul_weekly[group][:n + 10],
                                  mode='lines',
                                  legendgroup='model-fit',
                                  marker={'color': colors[i]},
-                                 name=group))
+                                 name='Model fit ' + group))
     for i, r2 in enumerate(r_squared):
         fig.add_annotation(text='R2: '+str(round(r2, 2)), showarrow=False,
                            x=1, xshift=0, yshift=i*15 + 100, font={'color': colors[i]})
@@ -190,7 +192,7 @@ def update_output_div(_, incidence, exposed_values,
         margin=dict(l=50, r=50, b=100, t=100, pad=4),
         paper_bgcolor="white",
         title={
-            'text': f"Saint Petersburg, {year} - {year + 1}",
+            'text': f"Saint Petersburg, {year}-{year + 1}",
             'y': 0.9,
             'x': 0.5,
             'xanchor': 'center',

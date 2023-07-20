@@ -1,7 +1,10 @@
 import os
+from typing import Optional
 
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
+
 from scipy.optimize import minimize
 from scipy.stats import qmc
 
@@ -38,11 +41,11 @@ class BaseOptimizer:
         self.strains = model.strains
         self.groups = [] if model_detailed else ['Все']
 
-        self.df_data_weekly = data
-        self.calib_data_weekly = []
+        self.df_data_weekly: DataFrame = data
+        self.calib_data_weekly: Optional[DataFrame] = None
 
-        self.df_simul_daily = []
-        self.df_simul_weekly = []
+        self.df_simul_daily: Optional[DataFrame] = None
+        self.df_simul_weekly: Optional[DataFrame] = None
 
         self.general_main_peak = []
         self.strains_num_opt = 0
@@ -98,6 +101,7 @@ class BaseOptimizer:
     def find_model_fit(self, exposed_list, lam_list, a):
         # Launching the simulation for a given parameter value and aligning the result to model
 
+        self.model.set_attributes()
         self.model.init_simul_params(exposed_list, lam_list, a)
         infected_pop, self.population_immunity, self.active_population, self.r0 = self.model.make_simulation()
         inf_shape = infected_pop.shape
@@ -235,11 +239,13 @@ class BaseOptimizer:
                                                                      self.incidence_type,
                                                                      self.age_groups,
                                                                      self.strains)
+        total_recovered = self.df_simul_weekly.sum().tolist()
+
         epid_params = {'exposed': exposed_opt_list,
                        'lambda': lambda_opt_list,
                        'a': a_opt,
                        'delta': self.delta,
-                       'total_recovered': self.model.total_recovered,
+                       'total_recovered': total_recovered,
                        'R2': self.R_square_list}
 
         print("Final optimal parameters: ")
@@ -247,6 +253,6 @@ class BaseOptimizer:
         print("lambda: ", lambda_opt_list)
         print("a: ", a_opt)
         print("R2: ", self.R_square_list)
-        print("Recovered: ", self.model.total_recovered)
+        print("Recovered: ", total_recovered)
 
         return epid_params
