@@ -3,8 +3,8 @@ contact_matrix_path: 'data/input/contact_matrix_revised_v2.p'
 
 city: 'Saint Petersburg'
 year: 2010
-percent_protected: 0.5
-INCIDENCE_TYPE: 'strain_age-group' # age-group 'strain_age-group'
+percent_protected: 0.2
+INCIDENCE_TYPE: 'age-group' # age-group 'strain_age-group'
 DATA_DETAIL: True
 MODEL_DETAIL: True
 GROUPING: False

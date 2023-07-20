@@ -1,13 +1,8 @@
-import os.path as osp
-from typing import Dict, Any, List
-
-
-from utils.experiment_setup import ExperimentalSetup
 from data.data_preprocessing import prepare_calibration_data
 
 from utils.utils import get_config
 from data.data_preprocessing import get_contact_matrix
-from models.BR_model_test import BRModel
+from models.BR_model import BRModel
 
 
 def get_data_and_model(mu, incidence):
@@ -33,6 +28,7 @@ def prepare_exposed_list(incidence, exposed_list):
         exposed_cor = []
         for item in exposed_list:
             exposed_cor.append([item, 1 - item])
+        exposed_list = exposed_cor
 
     elif incidence == 'strain':
         sum_exposed = sum(exposed_list)
