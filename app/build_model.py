@@ -7,6 +7,7 @@ from data.data_preprocessing import prepare_calibration_data
 
 from utils.utils import get_config
 from data.data_preprocessing import get_contact_matrix
+from models.BR_model_test import BRModel
 
 
 def get_data_and_model(mu, incidence):
@@ -22,11 +23,9 @@ def get_data_and_model(mu, incidence):
     contact_matrix = get_contact_matrix('../'+contact_matrix_path)
     epid_data, pop_size = prepare_calibration_data('../'+path, incidence, age_groups, strains, exposure_year)
 
-    factory = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu)
-    model, _ = factory.get_model_and_optimizer()
-    model_obj = factory.setup_model(model)
+    model = BRModel(contact_matrix, pop_size, mu, incidence, age_groups, strains)
 
-    return epid_data, model_obj, exposure_year
+    return epid_data, model, exposure_year
 
 
 def prepare_exposed_list(incidence, exposed_list):

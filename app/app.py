@@ -152,8 +152,6 @@ def update_output_div(_, incidence, exposed_values,
 
     simul_data = pd.DataFrame(simul_weekly, columns=groups)
     m, n = epid_data.index[0], epid_data.index[-1]
-    # simul_data = simul_data.iloc[:n+10, :]
-
     data_weights = weights_for_data.getWeights4Data(epid_data, groups)
     res2_list = dtf.find_residuals_weighted_list(epid_data, groups, data_weights)
 

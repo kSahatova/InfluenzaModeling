@@ -99,14 +99,12 @@ class BaseOptimizer:
         # Launching the simulation for a given parameter value and aligning the result to model
 
         self.model.init_simul_params(exposed_list, lam_list, a)
-        self.model.init_attributes()
         infected_pop, self.population_immunity, self.active_population, self.r0 = self.model.make_simulation()
         inf_shape = infected_pop.shape
         infected_pop = infected_pop.reshape(inf_shape[0] * inf_shape[1], inf_shape[2])
         self.df_simul_daily = pd.DataFrame(infected_pop.T, columns=self.groups)
 
-        if self.df_simul_daily.max().max() == 1.0:  # compares maximum among all columns with 1
-            # max([max(list(self.df_simul_daily[group])) for group in self.groups])
+        if self.df_simul_daily.max().max() == 1.0:
             print("No epi dynamics")
             return [999999999999] * len(self.groups)
 
@@ -117,7 +115,7 @@ class BaseOptimizer:
 
         if not self.bootstrap_mode:
             self.update_delta()
-            self.update_data_alignment()  # data index update order changed [followed R2 calc before]
+            self.update_data_alignment()  # data index update order changed [followed after R2 calc previously]
 
             dist2_list, self.dist2_ww_list = \
                 dtf.calculate_dist_squared_weighted_list(self.calib_data_weekly, self.df_simul_weekly,

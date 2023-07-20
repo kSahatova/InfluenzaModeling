@@ -10,8 +10,8 @@ class StrainModelOptimizer(BaseOptimizer):
         self.groups = [i[1] + '_' + i[0] if i[0] != 'total' else i[1]
                        for i in list(product(self.age_groups, self.strains))] \
             if model_detail else ['Все']
-        # [strain+'_'+age for age in self.age_groups
-        # for strain in self.strains] if model_detail else ['Все']
+        # groups are following: ['A(H1N1)pdm09_0-14', 'A(H3N2)_0-14', 'B_0-14',
+        # 'A(H1N1)pdm09_15 и ст.', 'A(H3N2)_15 и ст.', 'B_15 и ст.'] [order of groups matters]
 
     def fit_function(self, k):
         age_groups_num = len(self.age_groups)
