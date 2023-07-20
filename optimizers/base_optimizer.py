@@ -103,6 +103,7 @@ class BaseOptimizer:
 
         self.model.set_attributes()
         self.model.init_simul_params(exposed_list, lam_list, a)
+        self.model.set_attributes()
         infected_pop, self.population_immunity, self.active_population, self.r0 = self.model.make_simulation()
         inf_shape = infected_pop.shape
         infected_pop = infected_pop.reshape(inf_shape[0] * inf_shape[1], inf_shape[2])
