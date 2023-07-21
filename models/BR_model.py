@@ -100,6 +100,9 @@ class BRModel:
         x = np.zeros((age_groups_num, history_states_num, self.N + 1))
         rho = np.asarray([self.pop_size]).T - I0.sum(axis=1).reshape(age_groups_num, 1)
 
+        r0 = np.zeros((age_groups_num, strains_num))
+        rt = np.zeros((age_groups_num, strains_num, self.N + 1))
+
         for i in range(age_groups_num):
             exp_list = np.asarray(self.exposed_fraction_h)
             if len(exp_list.shape) == 1:
@@ -124,6 +127,9 @@ class BRModel:
                             cum_y = self.sum_ill(y[j, m, :], t)
                             f_value = f(h, m, self.a[0])
 
+                            if t == 0:
+                                r0[i] = (self.lam_m[0] * self.M[i][j] / (1 / 6))  # 1/6
+
                             infection_force += betta * cum_y * f_value / total_pop_size
                         inf_force_list.append(infection_force)
 
@@ -134,4 +140,4 @@ class BRModel:
                         for m in range(strains_num):
                             y[i, m, t + 1] += inf_force_list[m] / infection_force_total * real_infected
 
-        return y, population_immunity, rho, []
+        return y, population_immunity, rho, r0, rt

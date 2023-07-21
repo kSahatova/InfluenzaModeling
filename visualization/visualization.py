@@ -8,11 +8,30 @@ from typing import List
 from sklearn.metrics import r2_score
 
 
+def plot_rt(rt: DataFrame, city: str, year: int, output_file: str):
+    print("MIRA rt: ", rt)
+    colors = list(TABLEAU_COLORS.keys()) + list(BASE_COLORS.keys())
+
+    for i, partial_rt in enumerate(rt):
+        for j in range(0, len(partial_rt)):
+            print("MIRA AQUI ALGO PASA: ", partial_rt[j][: 30])  # First 10 are meaningless
+            plt.plot(partial_rt[j][11:], color=colors[i])
+
+    plt.axhline(y=1.0, color='black', linestyle='--')
+    plt.title(f"{city} ({year} $-$ {year + 1})")
+    plt.xlabel('Days')
+    plt.ylabel('Rt')
+    plt.legend()
+    plt.savefig(output_file, dpi=150, bbox_inches='tight')
+    plt.show()
+
 def plot_r0(r0: DataFrame, city: str, year: int, output_file: str):
+    print("MIRA r0: ", r0)
     colors = list(TABLEAU_COLORS.keys()) + list(BASE_COLORS.keys())
 
     for i, r in enumerate(r0):
-        plt.plot(year, r, 'o', color=colors[i])
+        for j in range(0, len(r)):
+            plt.plot(year, r[j], 'o', color=colors[i * len(r) + j])
 
     plt.title(f"{city}, {year}$-${year + 1}")
     plt.xlabel('Year')

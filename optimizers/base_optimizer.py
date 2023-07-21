@@ -61,6 +61,7 @@ class BaseOptimizer:
         self.tpeak_bias_aux = 0
 
         self.r0 = []
+        self.rt = []
         self.bootstrap_mode = False
 
     def _set_general_peak(self):
@@ -104,7 +105,7 @@ class BaseOptimizer:
         self.model.set_attributes()
         self.model.init_simul_params(exposed_list, lam_list, a)
         self.model.set_attributes()
-        infected_pop, self.population_immunity, self.active_population, self.r0 = self.model.make_simulation()
+        infected_pop, self.population_immunity, self.active_population, self.r0, self.rt = self.model.make_simulation()
         inf_shape = infected_pop.shape
         infected_pop = infected_pop.reshape(inf_shape[0] * inf_shape[1], inf_shape[2])
         self.df_simul_daily = pd.DataFrame(infected_pop.T, columns=self.groups)
