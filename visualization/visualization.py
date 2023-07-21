@@ -15,7 +15,7 @@ def plot_rt(rt: DataFrame, city: str, year: int, output_file: str):
     for i, partial_rt in enumerate(rt):
         for j in range(0, len(partial_rt)):
             print("MIRA AQUI ALGO PASA: ", partial_rt[j][: 30])  # First 10 are meaningless
-            plt.plot(partial_rt[j][11:], color=colors[i])
+            plt.plot(partial_rt[j][11:], color=colors[i * len(partial_rt) + j])
 
     plt.axhline(y=1.0, color='black', linestyle='--')
     plt.title(f"{city} ({year} $-$ {year + 1})")

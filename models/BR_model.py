@@ -94,6 +94,7 @@ class BRModel:
         I0 = np.ones((len(self.age_groups), len(self.strains)))
 
         y = np.zeros((age_groups_num, strains_num, self.N + 1))
+        y_daily = np.zeros((age_groups_num, strains_num, self.N + 1 + 8))
         for i in range(age_groups_num):
             y[i, :, 0] = I0[i, :]
 
@@ -139,5 +140,8 @@ class BRModel:
                     if infection_force_total > 0:
                         for m in range(strains_num):
                             y[i, m, t + 1] += inf_force_list[m] / infection_force_total * real_infected
+                            y_daily[i, m, t + 8] = (real_infected * (inf_force_list[m] / infection_force_total))
+                            if y_daily[i, m, t] != 0:
+                                rt[i, m, t + 1] = (real_infected * (inf_force_list[m] / infection_force_total)) / y_daily[i, m, t]
 
         return y, population_immunity, rho, r0, rt
