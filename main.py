@@ -4,8 +4,8 @@ from datetime import datetime
 from utils.experiment_setup import ExperimentalSetup
 from data.data_preprocessing import get_contact_matrix, prepare_calibration_data
 
-from visualization.visualization import plot_fitting, plot_r0, plot_rt
-from utils.utils import get_config, save_results
+from visualization.visualization import plot_fitting, plot_immune_population, plot_r0, plot_rt
+from utils.utils import get_config, save_results, save_epid_results
 
 
 def main():
@@ -48,6 +48,7 @@ def main():
 
     r0 = optimizer.r0
     rt = optimizer.rt
+    population_immunity = optimizer.population_immunity
 
     results_dir = f'{incidence}_{exposure_year}_{datetime.now().strftime("%Y_%m_%d_%H_%M")}'
     full_path = osp.normpath(osp.join(output_dir, results_dir))
@@ -57,10 +58,16 @@ def main():
     plot_fitting(incidence_data, calibration_data, model_fit, city_eng,
                  exposure_year, file_path_fitting, r_squared=r_squared, predict=predict)
 
+    file_path_pop_i = osp.join(full_path, f'pop_imm_{incidence}_{city}_{exposure_year}.png')
+    save_epid_results(population_immunity, "immunity", full_path)
+    plot_immune_population(population_immunity, city_eng, exposure_year, file_path_pop_i)
+
     file_path_r0 = osp.join(full_path, f'r0_{incidence}_{city}_{exposure_year}.png')
+    save_epid_results(r0, "r0", full_path)
     plot_r0(r0, city_eng, exposure_year, file_path_r0)
 
     file_path_rt = osp.join(full_path, f'rt_{incidence}_{city}_{exposure_year}.png')
+    save_epid_results(rt, "rt", full_path)
     plot_rt(rt, city_eng, exposure_year, file_path_rt)
 
 if __name__ == '__main__':

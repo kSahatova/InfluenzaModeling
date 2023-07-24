@@ -112,7 +112,7 @@ class BRModel:
         total_pop_size = sum(rho)
 
         # todo: add calculation of population immunity from RSCF_Uncertainty repo
-        population_immunity = np.zeros((strains_num, self.N + 1))
+        population_immunity = np.zeros((age_groups_num, strains_num, self.N + 1))
 
         for t in range(self.N):
             for i in range(age_groups_num):
@@ -140,8 +140,12 @@ class BRModel:
                     if infection_force_total > 0:
                         for m in range(strains_num):
                             y[i, m, t + 1] += inf_force_list[m] / infection_force_total * real_infected
-                            y_daily[i, m, t + 8] = (real_infected * (inf_force_list[m] / infection_force_total))
+                            y_daily[i, m, t + 8] = inf_force_list[m] / infection_force_total * real_infected  #(real_infected * (inf_force_list[m] / infection_force_total))
                             if y_daily[i, m, t] != 0:
-                                rt[i, m, t + 1] = (real_infected * (inf_force_list[m] / infection_force_total)) / y_daily[i, m, t]
+                                #  rt[i, m, t + 1] = (real_infected * (inf_force_list[m] / infection_force_total)) / y_daily[i, m, t]
+                                rt[i, m, t + 1] = (inf_force_list[m] / infection_force_total * real_infected) / y_daily[i, m, t]
+                            if t > self.get_recovery_time() - 1:
+                                # population_immunity[i, m, t + 1] = population_immunity[i, m, t] + (real_infected * (inf_force_list[m] / infection_force_total))
+                                population_immunity[i, m, t + 1] = population_immunity[i, m, t] + (inf_force_list[m] / infection_force_total * real_infected)
 
         return y, population_immunity, rho, r0, rt

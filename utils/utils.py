@@ -43,6 +43,14 @@ def save_results(parameters: Dict,
     original_data.to_csv(osp.join(full_path, INCIDENCE_DATA_FILE))
     calibration_data.to_csv(osp.join(full_path, CALIBRATION_DATA_FILE))
 
+def save_epid_results(result: DataFrame,
+                 epid_name: str,
+                 full_path: str) -> None:
+
+    os.makedirs(full_path, exist_ok=True)
+    new_result = pd.DataFrame(result)
+    new_result.to_csv(osp.join(full_path, epid_name))
+
 
 def get_parameters(output_dir):
     with open(osp.join(output_dir, PARAMETERS_FILE), 'r') as f:

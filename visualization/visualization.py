@@ -53,7 +53,8 @@ def plot_immune_population(population_immunity: DataFrame,
     colors = list(TABLEAU_COLORS.keys()) + list(BASE_COLORS.keys())
 
     for i, immun in enumerate(population_immunity):
-        plt.plot(year, immun, 'o', color=colors[i])
+        for j in range(0, len(immun)):
+            plt.plot(immun[j], color=colors[i * len(immun) + j])
 
     plt.title(f"{city}, {year}$-${year + 1}")
     plt.xlabel('Year')
