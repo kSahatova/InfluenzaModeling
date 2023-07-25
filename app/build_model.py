@@ -37,6 +37,22 @@ def prepare_exposed_list(incidence, exposed_list):
         else:
             exposed_list = [item / sum_exposed for item in exposed_list]
             exposed_list.append(0)
+
+    elif incidence == 'strain_age-group':
+        strains_num = 3
+        exposed_cor = []
+        for i in range(2):
+            sum_exposed = sum(exposed_list[i * strains_num:i * strains_num + strains_num])
+
+            if sum_exposed < 1:
+                temp = [exposed_list[i * strains_num + m] for m in range(strains_num)]
+                temp.append(1 - sum_exposed)
+            else:
+                temp = [exposed_list[i * strains_num + m] / sum_exposed for m in range(strains_num)]
+                temp.append(0)
+            exposed_cor.append(temp)
+        exposed_list = exposed_cor
+
     return exposed_list
 
 

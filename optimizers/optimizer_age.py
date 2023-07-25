@@ -6,6 +6,7 @@ class AgeModelOptimizer(BaseOptimizer):
         super().__init__(model, data_obj, model_detail)
         self.groups = self.age_groups if model_detail else ['Все']
         self.age_group_ind = 1
+        self.age_groups = model.age_groups if self.model.incidence_type == 'age-group' else ['total']
 
     def fit_function(self, k):
         age_groups_num = len(self.age_groups)

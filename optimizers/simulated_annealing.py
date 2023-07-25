@@ -47,7 +47,7 @@ class InitValueFinder(Annealer):
         age_groups_num = len(self.age_groups)
         strains_num = len(self.history_states) - 1
 
-        if self.incidence_type == 'age-group':
+        if self.incidence_type in ['age-group', 'total']:
 
             for item in self.state[:age_groups_num]:
                 exposed_list.append([item, 1-item])

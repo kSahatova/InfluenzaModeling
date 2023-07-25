@@ -47,7 +47,8 @@ def plot_immune_population(population_immunity: DataFrame,
 def plot_fitting(original_data: DataFrame,
                  calibration_data: DataFrame,
                  simulated_data: DataFrame,
-                 city: str, year: int,
+                 city: str,
+                 year: int,
                  file_path: str = 'model_fit.png',
                  r_squared: List[float] = None,
                  predict: bool = False):
@@ -81,7 +82,7 @@ def plot_fitting(original_data: DataFrame,
     plt.xlabel('Weeks')
     plt.ylabel('Incidence, cases')
     plt.legend()
-    plt.savefig(file_path, dpi=150, bbox_inches='tight')
+    plt.savefig(file_path, dpi=300, bbox_inches='tight')
     plt.savefig(file_path.replace('.png', '.eps'), dpi=300, bbox_inches='tight')
     plt.savefig(file_path.replace('.png', '.pdf'), dpi=300, bbox_inches='tight')
     plt.show()

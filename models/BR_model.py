@@ -80,9 +80,12 @@ class BRModel:
         return len(self.q) + 1
 
     def set_attributes(self):
-        if self.incidence_type in ['age-group', 'total']:
+        if self.incidence_type == 'age-group':
             # self.history_states = ['Exposed', 'Not exposed']
             self.strains = ['generic']
+        elif self.incidence_type == 'total':
+            self.strains = ['generic']
+            self.age_groups = ['total']
         else:
             # self.history_states = self.strains.copy() + ["No exposure"]
             self.age_groups = self.age_groups if self.incidence_type != 'strain' else ['total']

@@ -19,7 +19,7 @@ class ExperimentalSetup:
 
     def get_model_and_optimizer(self):
         model, optimizer = BRModel, None
-        if self.incidence_type == 'age-group':
+        if self.incidence_type in ['age-group', 'total']:
             optimizer = AgeModelOptimizer
         elif self.incidence_type in ['strain_age-group', 'strain']:
             optimizer = StrainModelOptimizer

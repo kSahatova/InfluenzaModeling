@@ -1,41 +1,20 @@
 import dash
 import pandas as pd
 
-from dash import Dash, html, dcc, Input, Output, State, ALL, MATCH
+from dash import Dash, html, dcc, Input, Output, State, ALL
 import dash_bootstrap_components as dbc
 
 import plotly.graph_objects as go
+import plotly.express as px
 
 from build_model import get_data_and_model, prepare_exposed_list
 from optimizers.aux_functions import data_functions as dtf
 from optimizers.aux_functions import weights_for_data_functions as weights_for_data
-
+from components import multi_age, multi_strain, multi_age_strain
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.config.suppress_callback_exceptions = True
 
-exposed_sliders = [
-                    dcc.Slider(min=0, max=1, step=0.001, value=0.55,
-                               marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 0},
-                               tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1, step=0.001, value=0.2,
-                               marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 1},
-                               tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1, step=0.001, value=0.61,
-                               marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 2},
-                               tooltip={"placement": "bottom", "always_visible": True})
-                ]
-lambda_sliders = [
-                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.19,
-                               marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 0},
-                               tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.06,
-                               marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 1},
-                               tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1.5, step=0.0001, value=0.197,
-                               marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 2},
-                               tooltip={"placement": "bottom", "always_visible": True})
-                ]
 app.layout = \
     dbc.Container([
         dbc.Row([
@@ -46,14 +25,16 @@ app.layout = \
                     options=[{'label': 'multi age ', 'value': 'age-group'},
                              {'label': 'multi strain ', 'value': 'strain'},
                              {'label': 'multi strain-age ', 'value': 'strain_age-group'}],
-                    value='age-group', id='incidence', inline=True),
+                    value='age-group', id='incidence', inline=True,
+                    inputStyle={"marginRight": "4px",
+                                "marginLeft": "15px"}, style={'margin': '10px 5px'}),
 
                 html.H3(children='exposed', id='exp_title', style={'margin': '20px 20px'}),
-                html.Div(children=exposed_sliders,
+                html.Div(children=multi_age['exposed'],
                          id='exp-sliders-container'),
 
                 html.H3(children='lambda', style={'margin': '0px 20px'}),
-                html.Div(children=lambda_sliders, id='lambda-sliders-container'),
+                html.Div(children=multi_age['lambda'], id='lambda-sliders-container'),
 
                 html.H3(children='a', style={'margin': '0px 20px'}),
                 html.Div([
@@ -88,24 +69,12 @@ app.layout = \
     Input('incidence', 'value')
 )
 def update_components(incidence):
-    global exposed_sliders, lambda_sliders
     if incidence == 'age-group':
-        reduced_exposed_sliders = [
-            dcc.Slider(min=0, max=1, step=0.001, value=0.55,
-                       marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 0},
-                       tooltip={"placement": "bottom", "always_visible": True}),
-            dcc.Slider(min=0, max=1, step=0.001, value=0.2,
-                       marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 1},
-                       tooltip={"placement": "bottom", "always_visible": True})
-        ]
-        reduced_lambda_sliders = [
-            dcc.Slider(min=0, max=1.5, step=0.0001, value=0.19,
-                       marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 0},
-                       tooltip={"placement": "bottom", "always_visible": True}),
-        ]
-        return [reduced_exposed_sliders, reduced_lambda_sliders]
-
-    return [exposed_sliders, lambda_sliders]
+        return [multi_age['exposed'], multi_age['lambda']]
+    elif incidence == 'strain':
+        return [multi_strain['exposed'], multi_strain['lambda']]
+    elif incidence == 'strain_age-group':
+        return [multi_age_strain['exposed'], multi_age_strain['lambda']]
 
 
 @app.callback(
@@ -126,7 +95,7 @@ def update_output_div(_, incidence, exposed_values,
     print(dash.callback_context.inputs_list)
     print(exposed_values, lambda_values, a)
 
-    colors = ['blue', 'green', 'orange']
+    colors = px.colors.qualitative.D3
     groups = []
 
     if incidence == 'age-group':
@@ -134,6 +103,10 @@ def update_output_div(_, incidence, exposed_values,
 
     elif incidence == 'strain':
         groups = ['A(H1N1)pdm09', 'A(H3N2)', 'B']
+
+    elif incidence == 'strain_age-group':
+        groups = ['A(H1N1)pdm09_0-14', 'A(H3N2)_0-14', 'B_0-14',
+                  'A(H1N1)pdm09_15 и ст.', 'A(H3N2)_15 и ст.', 'B_15 и ст.']
 
     exposed_list = exposed_values
     lam_list = lambda_values

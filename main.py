@@ -32,7 +32,8 @@ def main():
     if not data_detail or not model_detail:
         incidence = 'total'
 
-    contact_matrix = get_contact_matrix(contact_matrix_path) if incidence != 'strain' else [[6.528]]
+    contact_matrix = get_contact_matrix(contact_matrix_path) \
+        if incidence not in ['strain', 'total'] else [[6.528]]
     epidemic_data, pop_size = prepare_calibration_data(path, incidence, age_groups, strains, exposure_year)
 
     experiment_setter = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu)

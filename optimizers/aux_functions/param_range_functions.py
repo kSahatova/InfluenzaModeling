@@ -65,6 +65,10 @@ def set_parameters_range(incidence, a_detail=False):
             "B": (0.005, 0.3)
         }
         a_range = (0.0, 1.0)  # 2010 - (0.11, 0.13)
+    elif incidence == 'total':
+        exposed_range = (0.005, 0.9)
+        lam_range = (0.03, 0.3)  # (0.03, 0.24)
+        a_range = (0.0, 1.0)
     params_range = []
     for item in [exposed_range, lam_range, a_range]:
         for param in unpack_parameter_values(item):
