@@ -15,13 +15,13 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.config.suppress_callback_exceptions = True
 
 exposed_sliders = [
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.55,
+                    dcc.Slider(min=0, max=1, step=0.001, value=0.55,
                                marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 0},
                                tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.2,
+                    dcc.Slider(min=0, max=1, step=0.001, value=0.2,
                                marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 1},
                                tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.61,
+                    dcc.Slider(min=0, max=1, step=0.001, value=0.61,
                                marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 2},
                                tooltip={"placement": "bottom", "always_visible": True})
                 ]
@@ -91,10 +91,10 @@ def update_components(incidence):
     global exposed_sliders, lambda_sliders
     if incidence == 'age-group':
         reduced_exposed_sliders = [
-            dcc.Slider(min=0, max=1, step=0.01, value=0.55,
+            dcc.Slider(min=0, max=1, step=0.001, value=0.55,
                        marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 0},
                        tooltip={"placement": "bottom", "always_visible": True}),
-            dcc.Slider(min=0, max=1, step=0.01, value=0.2,
+            dcc.Slider(min=0, max=1, step=0.001, value=0.2,
                        marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 1},
                        tooltip={"placement": "bottom", "always_visible": True})
         ]
@@ -178,8 +178,8 @@ def update_output_div(_, incidence, exposed_values,
                       )
 
     for i, group in enumerate(simul_data.columns):
-        fig.add_trace(go.Scatter(x=simul_weekly[group].index[:n + 10],
-                                 y=simul_weekly[group][:n + 10],
+        fig.add_trace(go.Scatter(x=simul_weekly[group].index[:n + 15],
+                                 y=simul_weekly[group][:n + 15],
                                  mode='lines',
                                  legendgroup='model-fit',
                                  marker={'color': colors[i]},
@@ -188,6 +188,7 @@ def update_output_div(_, incidence, exposed_values,
         fig.add_annotation(text='R2: '+str(round(r2, 2)), showarrow=False,
                            x=1, xshift=0, yshift=i*15 + 100, font={'color': colors[i]})
     fig.update_layout(
+        template='plotly_white',
         autosize=True,
         margin=dict(l=50, r=50, b=100, t=100, pad=4),
         paper_bgcolor="white",

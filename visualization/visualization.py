@@ -82,6 +82,8 @@ def plot_fitting(original_data: DataFrame,
     plt.ylabel('Incidence, cases')
     plt.legend()
     plt.savefig(file_path, dpi=150, bbox_inches='tight')
+    plt.savefig(file_path.replace('.png', '.eps'), dpi=300, bbox_inches='tight')
+    plt.savefig(file_path.replace('.png', '.pdf'), dpi=300, bbox_inches='tight')
     plt.show()
 
 

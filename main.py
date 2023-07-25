@@ -46,8 +46,8 @@ def main():
     calibration_data = optimizer.calib_data_weekly.loc[:, model_fit.columns]
     r_squared = optimizer.R_square_list
 
-    results_dir = f'{incidence}_{exposure_year}_{datetime.now().strftime("%Y_%m_%d_%H_%M")}'
-    full_path = osp.normpath(osp.join(output_dir, results_dir))
+    results_dir = f'{incidence}_{exposure_year}_{datetime.now().strftime("%Y_%m_%d_%H_%M")}_mu_{mu}'
+    full_path = osp.normpath(osp.join(output_dir, 'ysc_paper', results_dir))
     save_results(opt_parameters, model_fit, calibration_data, incidence_data, full_path)
 
     file_path_fitting = osp.join(full_path, f'fit_{incidence}_{city}_{exposure_year}.png')
