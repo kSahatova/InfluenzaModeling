@@ -59,15 +59,15 @@ def main():
                  exposure_year, file_path_fitting, r_squared=r_squared, predict=predict)
 
     file_path_pop_i = osp.join(full_path, f'pop_imm_{incidence}_{city}_{exposure_year}.png')
-    save_epid_results(population_immunity, "immunity", full_path)
+    save_epid_results(population_immunity, "immunity", age_groups, strains, full_path)
     plot_immune_population(population_immunity, city_eng, exposure_year, file_path_pop_i)
 
     file_path_r0 = osp.join(full_path, f'r0_{incidence}_{city}_{exposure_year}.png')
-    save_epid_results(r0, "r0", full_path)
+    save_epid_results(r0, "r0", age_groups, strains, full_path)
     plot_r0(r0, city_eng, exposure_year, file_path_r0)
 
     file_path_rt = osp.join(full_path, f'rt_{incidence}_{city}_{exposure_year}.png')
-    save_epid_results(rt, "rt", full_path)
+    save_epid_results(rt, "rt", age_groups, strains, full_path)
     plot_rt(rt, city_eng, exposure_year, file_path_rt)
 
 if __name__ == '__main__':

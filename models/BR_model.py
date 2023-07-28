@@ -129,7 +129,7 @@ class BRModel:
                             f_value = f(h, m, self.a[0])
 
                             if t == 0:
-                                r0[i] = (self.lam_m[0] * self.M[i][j] / (1 / 6))  # 1/6
+                                r0[i] = (self.lam_m[m] * self.M[i][j] / (1 / 6))  # 1/6
 
                             infection_force += betta * cum_y * f_value / total_pop_size
                         inf_force_list.append(infection_force)

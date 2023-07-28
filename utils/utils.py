@@ -45,11 +45,27 @@ def save_results(parameters: Dict,
 
 def save_epid_results(result: DataFrame,
                  epid_name: str,
+                 age_groups: List[str],
+                 strains: List[str],
                  full_path: str) -> None:
 
+    prev_shape = result.shape
+    if len(prev_shape) == 3:
+        result = result.reshape(prev_shape[0] * prev_shape[1], prev_shape[2])
+
+    if prev_shape[0] == 1 and prev_shape[1] != 1: # strain
+        final_epid_data = pd.DataFrame(result.T, columns=strains)
+    elif prev_shape[0] != 1 and prev_shape[1] == 1: # age-group
+        final_epid_data = pd.DataFrame(result.T, columns=age_groups)
+    elif prev_shape[0] != 1 and prev_shape[1] != 1: # total
+        final_epid_data = pd.DataFrame(result.T, columns=["Total"])
+    else:  # strain_age-group
+        final_epid_data = pd.DataFrame(result.T, columns=[strain + "_" + age_group for strain in strains for age_group in age_groups])
+
     os.makedirs(full_path, exist_ok=True)
-    new_result = pd.DataFrame(result)
-    new_result.to_csv(osp.join(full_path, epid_name))
+    # new_result = pd.DataFrame(result)
+    final_epid_data = final_epid_data
+    final_epid_data.to_csv(osp.join(full_path, epid_name))
 
 
 def get_parameters(output_dir):
