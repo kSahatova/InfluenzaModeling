@@ -51,9 +51,11 @@ def plot_fitting(original_data: DataFrame,
                  year: int,
                  file_path: str = 'model_fit.png',
                  r_squared: List[float] = None,
+                 r_squared_plain: List[float] = None,
                  predict: bool = False):
     """Plots model fit, data used for calibration and original data"""
 
+    plt.rcParams.update({'font.size': 17})
     last_point_ind = original_data.index[-1] + 15
 
     ax = plt.figure(figsize=(10, 7)).add_subplot(111)
@@ -74,17 +76,18 @@ def plot_fitting(original_data: DataFrame,
         ax.plot(simulated_data.loc[:last_point_ind, column],
                 label=f'Model fit ({labels[i]})', color=colors[i])
         if r_squared:
-            plt.text(0.05, 0.6 - (i * 0.05), "$R^2$={}".format(round(r_squared[i], 2)),
-                     fontsize=16, color=colors[i], horizontalalignment='left',
+            r2_plain = f', $R^2(1)$={round(r_squared_plain[i], 2)}' if r_squared_plain else ''
+            plt.text(0.05, 0.5 - (i * 0.08), f"$R^2(1.5)$={round(r_squared[i], 2)}{r2_plain}",
+                     fontsize=17, color=colors[i], horizontalalignment='left',
                      verticalalignment='center', transform=ax.transAxes)
 
     plt.title(f'{city}, {year}$-${year + 1}')
     plt.xlabel('Weeks')
     plt.ylabel('Incidence, cases')
     plt.legend()
-    plt.savefig(file_path, dpi=300, bbox_inches='tight')
-    plt.savefig(file_path.replace('.png', '.eps'), dpi=300, bbox_inches='tight')
-    plt.savefig(file_path.replace('.png', '.pdf'), dpi=300, bbox_inches='tight')
+    plt.savefig(file_path, dpi=150, bbox_inches='tight')
+    plt.savefig(file_path.replace('.png', '.eps'), dpi=150, bbox_inches='tight')
+    plt.savefig(file_path.replace('.png', '.pdf'), dpi=150, bbox_inches='tight')
     plt.show()
 
 

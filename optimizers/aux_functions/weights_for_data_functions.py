@@ -1,14 +1,14 @@
 from . import data_functions as dtf
 
 
-def getWeights4Data(df, model_group):
+def getWeights4Data(df, model_group, sigma):
     weights = {}
 
     for subgroup in model_group:
         y = list(df[subgroup])
         w_general_list = [1]
         for i in range(len(y)):
-            w_general_list.append(w_general_list[-1] / 2.5)  # 1.3
+            w_general_list.append(w_general_list[-1] / sigma)  # 1.3
 
         peak_index = dtf.max_elem_index(y)
 

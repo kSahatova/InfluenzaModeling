@@ -81,4 +81,3 @@ def calculate_r_square(df_data_weekly, df_simul_weekly, groups, delta, weights):
     R_square_list = [1 - fun_val / res2 for fun_val, res2 in zip(dist2_list, res2_list)]
 
     return R_square_list
-

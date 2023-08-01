@@ -15,6 +15,7 @@ def main():
     exposure_year = config['year']
     contact_matrix_path = config['contact_matrix_path']
     mu = config['percent_protected']
+    sigma = config['sigma']
 
     age_groups = config['age_groups']
     strains = config['strains']
@@ -36,7 +37,7 @@ def main():
         if incidence not in ['strain', 'total'] else [[6.528]]
     epidemic_data, pop_size = prepare_calibration_data(path, incidence, age_groups, strains, exposure_year)
 
-    experiment_setter = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu)
+    experiment_setter = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu, sigma)
     optimizer = experiment_setter.setup_experiment(epidemic_data, model_detail)
 
     opt_parameters = optimizer.fit_one_outbreak()
@@ -47,7 +48,7 @@ def main():
     calibration_data = optimizer.calib_data_weekly.loc[:, model_fit.columns]
     r_squared = optimizer.R_square_list
 
-    results_dir = f'{incidence}_{exposure_year}_{datetime.now().strftime("%Y_%m_%d_%H_%M")}_mu_{mu}'
+    results_dir = f'{incidence}_{exposure_year}_{datetime.now().strftime("%Y_%m_%d_%H_%M")}_mu_{mu}_sigma_{sigma}'
     full_path = osp.normpath(osp.join(output_dir, 'ysc_paper', results_dir))
     save_results(opt_parameters, model_fit, calibration_data, incidence_data, full_path)
 

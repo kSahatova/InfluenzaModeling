@@ -2,8 +2,8 @@ from .base_optimizer import BaseOptimizer
 
 
 class AgeModelOptimizer(BaseOptimizer):
-    def __init__(self, model, data_obj, model_detail):
-        super().__init__(model, data_obj, model_detail)
+    def __init__(self, model, data_obj, model_detail, sigma):
+        super().__init__(model, data_obj, model_detail, sigma)
         self.groups = self.age_groups if model_detail else ['Все']
         self.age_group_ind = 1
         self.age_groups = model.age_groups if self.model.incidence_type == 'age-group' else ['total']

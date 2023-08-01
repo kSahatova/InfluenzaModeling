@@ -16,6 +16,7 @@ class ExperimentalSetup:
     contact_matrix: object
     pop_size: float
     mu: float
+    sigma: float
 
     def get_model_and_optimizer(self):
         model, optimizer = BRModel, None
@@ -31,7 +32,7 @@ class ExperimentalSetup:
                      self.incidence_type, self.age_groups, self.strains)
 
     def setup_optimizer(self, optimizer, model, data, model_detailed):
-        return optimizer(model, data, model_detailed)
+        return optimizer(model, data, model_detailed, self.sigma)
 
     def setup_experiment(self, data: DataFrame, model_detailed: bool):
         model, optimizer = self.get_model_and_optimizer()

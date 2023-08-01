@@ -7,6 +7,7 @@ from pandas import DataFrame
 
 from scipy.optimize import minimize
 from scipy.stats import qmc
+from sklearn.metrics import r2_score
 
 from functools import partial
 from multiprocessing import Pool
@@ -22,7 +23,7 @@ class BaseOptimizer:
     """
     Parent class optimizer
     """
-    def __init__(self, model, data, model_detailed):
+    def __init__(self, model, data, model_detailed, sigma):
         """
         An optimizer class constructor
         :param model (BR_model): Baroyan-Rvachev model (check models.BR_model)
@@ -62,6 +63,7 @@ class BaseOptimizer:
 
         self.r0 = []
         self.bootstrap_mode = False
+        self.sigma = sigma
 
     def _set_general_peak(self):
         """Calculates the greatest number of incidence cases and its index in the data set"""
@@ -72,9 +74,9 @@ class BaseOptimizer:
         """Converts data points of the model curve presented in days to weeks"""
         self.df_simul_weekly = weeklyf.getDays2Weeks(self.df_simul_daily, self.groups)
 
-    def _get_data_weights(self, df):  # df, strains, age_group, incidence_type
+    def _get_data_weights(self, df, sigma):  # df, strains, age_group, incidence_type
         """Puts bigger weights to the data points that are closer to the peak"""
-        return weights_for_data.getWeights4Data(df, self.groups)
+        return weights_for_data.getWeights4Data(df, self.groups, sigma)
 
     def update_delta(self):
         peak_indices_real, _ = dtf.max_elem_indices(self.df_data_weekly, self.groups)
@@ -137,6 +139,11 @@ class BaseOptimizer:
             self.R_square_list = [1 - fun_val / res2 for fun_val, res2 in zip(dist2_list, self.res2_list)]
 
         print(" R2: ", self.R_square_list)
+
+        '''R_square_plain = dtf.calculate_r_square(self.calib_data_weekly, self.df_simul_weekly,
+                                                self.groups, self.delta, self._get_data_weights(self.df_data_weekly,
+                                                                                                sigma=1.5))
+        print('R2 with weights', R_square_plain)'''
 
         return dist2_list
 
@@ -221,7 +228,7 @@ class BaseOptimizer:
         An outbreak fitting function
         """
         self.calib_data_weekly = self.df_data_weekly[:sample_size]
-        self.data_weights = self._get_data_weights(self.df_data_weekly)
+        self.data_weights = self._get_data_weights(self.df_data_weekly, self.sigma)
         self.res2_list = dtf.find_residuals_weighted_list(self.df_data_weekly, self.groups, self.data_weights)
 
         if predict:

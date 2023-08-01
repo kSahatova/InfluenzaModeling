@@ -24,8 +24,8 @@ class InitValueFinder(Annealer):
         self.incidence_type = incidence_type
         self.energy_func = optimum_func
         self.a_detail = a_detail
-        self.steps = 500  # 10000
-        self.updates = 100  # 1000
+        self.steps = 1000  #10000
+        self.updates = 100  # 100 # number of line being printed in stdout
         self.copy_strategy = "slice"
         self.state = state
         super(InitValueFinder, self).__init__(state)  # important!

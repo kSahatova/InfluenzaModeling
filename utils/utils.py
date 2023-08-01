@@ -74,6 +74,9 @@ def get_exposed_ready_for_simulation(exposed_list: List[Any], incidence: str,
                 temp = [exposed_list[i * strains_num + m] / sum_exposed for m in range(strains_num)]
                 temp.append(0)
             exposed_list_cor.append(temp)
+    elif incidence in ['age-group', 'total']:
+        for item in exposed_list:
+            exposed_list_cor.append([item, 1-item])
 
     return exposed_list_cor
 
@@ -94,9 +97,9 @@ def restore_from_saved_data(incidence: str):
 
 def restore_fit_from_params(contact_matrix: object, pop_size: float, incidence: str,
                             age_groups: List[str], strains: List[str], mu: float,
-                            output_dir: str):
+                            sigma: float,  output_dir: str):
 
-    factory = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu)
+    factory = ExperimentalSetup(incidence, age_groups, strains, contact_matrix, pop_size, mu, sigma)
     model, _ = factory.get_model_and_optimizer()
     model_obj = factory.setup_model(model)
 
@@ -109,13 +112,18 @@ def restore_fit_from_params(contact_matrix: object, pop_size: float, incidence: 
     orig_data_path = f'{output_dir}/{INCIDENCE_DATA_FILE}'
     orig_data = pd.read_csv(orig_data_path, index_col=0)
 
+    model_obj.set_attributes()
     model_obj.init_simul_params(exposed_list=exposed_list_cor, lam_list=lam_list, a=a_list)
     simul_data, immune_pop, susceptible, _ = model_obj.make_simulation()
 
-    days_num = simul_data.shape[2]
+    shape = simul_data.shape
+    simul_data = simul_data.reshape(shape[0] * shape[1], shape[2])
+    simul_data = pd.DataFrame(simul_data.T, columns=calib_data.columns)
+
+    days_num = simul_data.shape[0]
     wks_num = int(days_num / 7.0)
-    simul_weekly = [simul_data[0, :, i * 7: i * 7 + 7].sum(axis=1) for i in range(wks_num)]
-    simul_data = pd.DataFrame(simul_weekly, columns=calib_data.columns)
-    return calib_data, simul_data, orig_data, r_squared
+    simul_weekly = simul_data.aggregate(func=lambda x: [x[i * 7: i * 7 + 7].sum() for i in range(wks_num)])
+
+    return calib_data, simul_weekly, orig_data, r_squared
 
 

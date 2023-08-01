@@ -4,8 +4,8 @@ from .base_optimizer import BaseOptimizer
 
 
 class StrainModelOptimizer(BaseOptimizer):
-    def __init__(self, model, data_obj, model_detail):
-        super().__init__(model, data_obj, model_detail)
+    def __init__(self, model, data_obj, model_detail, sigma):
+        super().__init__(model, data_obj, model_detail, sigma)
         self.age_groups = model.age_groups if self.incidence_type != 'strain' else ['total']
         self.groups = [i[1] + '_' + i[0] if i[0] != 'total' else i[1]
                        for i in list(product(self.age_groups, self.strains))] \
