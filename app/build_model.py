@@ -15,7 +15,8 @@ def get_data_and_model(mu, incidence):
     age_groups = config['age_groups']
     strains = config['strains']
 
-    contact_matrix = get_contact_matrix('../'+contact_matrix_path)
+    contact_matrix = get_contact_matrix('../'+contact_matrix_path) \
+        if incidence not in ['strain', 'total'] else [[6.528]]
     epid_data, pop_size = prepare_calibration_data('../'+path, incidence, age_groups, strains, exposure_year)
 
     model = BRModel(contact_matrix, pop_size, mu, incidence, age_groups, strains)

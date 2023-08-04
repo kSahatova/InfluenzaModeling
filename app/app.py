@@ -6,6 +6,7 @@ import dash_bootstrap_components as dbc
 
 import plotly.graph_objects as go
 import plotly.express as px
+from sklearn.metrics import r2_score
 
 from build_model import get_data_and_model, prepare_exposed_list
 from optimizers.aux_functions import data_functions as dtf
@@ -38,16 +39,16 @@ app.layout = \
 
                 html.H3(children='a', style={'margin': '0px 20px'}),
                 html.Div([
-                    dcc.Slider(min=0, max=1, step=0.01, value=0.12,
+                    dcc.Slider(min=0, max=1, step=0.01, value=0.15517896068381203,
                                marks={0: '0', 1: '1'}, id='a',
                                tooltip={"placement": "bottom", "always_visible": True})
                     ]),
                 html.H3(children='mu', style={'margin': '20px 20px'}),
-                dcc.Slider(min=0, max=1, step=0.01, value=0.5,
+                dcc.Slider(min=0, max=1, step=0.001, value=0.169,
                            marks={0: '0', 1: '1'}, id='mu',
                            tooltip={"placement": "bottom", "always_visible": True}),
                 html.H3(children='delta',  style={'margin': '20px 20px'}),
-                dcc.Slider(min=0, max=100, step=1, value=0,
+                dcc.Slider(min=0, max=100, step=1, value=35,
                            marks={0: '0', 100: '1'}, id='delta',
                            tooltip={"placement": "bottom", "always_visible": True}),
                 dbc.Button("Make simulation", color="primary",
@@ -127,7 +128,7 @@ def update_output_div(_, incidence, exposed_values,
 
     epid_data.index = epid_data.reset_index().index + delta
     m, n = epid_data.index[0], epid_data.index[-1]
-    data_weights = weights_for_data.getWeights4Data(epid_data, groups)
+    data_weights = weights_for_data.getWeights4Data(epid_data, groups, 1)
     res2_list = dtf.find_residuals_weighted_list(epid_data, groups, data_weights)
 
     sum_list = []
@@ -138,7 +139,9 @@ def update_output_div(_, incidence, exposed_values,
         sum_ = sum([data_weights[group][i] * pow(x[m + i] - y[m + i], 2) for i in range(len(x))])
         sum_list.append(sum_)
 
-    r_squared = [1 - fun_val / res2 for fun_val, res2 in zip(sum_list, res2_list)]
+    # r_squared = [1 - fun_val / res2 for fun_val, res2 in zip(sum_list, res2_list)]
+    r_squared = r2_score(epid_data[groups], simul_weekly.iloc[delta:epid_data.index[-1]+1, :],
+                         multioutput='raw_values')
 
     fig = go.Figure()
     for i, group in enumerate(simul_data.columns):
@@ -146,23 +149,23 @@ def update_output_div(_, incidence, exposed_values,
                                  y=epid_data[group],
                                  mode='markers',
                                  legendgroup='data',
-                                 marker={'color': colors[i]},
-                                 name='Data ' + group)
-                      )
+                                 marker={'color': colors[i], 'size': 14},
+                                 name='Data ' + group))
 
     for i, group in enumerate(simul_data.columns):
         fig.add_trace(go.Scatter(x=simul_weekly[group].index[:n + 15],
                                  y=simul_weekly[group][:n + 15],
                                  mode='lines',
                                  legendgroup='model-fit',
-                                 marker={'color': colors[i]},
+                                 marker={'color': colors[i], 'size': 14},
                                  name='Model fit ' + group))
     for i, r2 in enumerate(r_squared):
-        fig.add_annotation(text='R2: '+str(round(r2, 2)), showarrow=False,
-                           x=1, xshift=0, yshift=i*15 + 100, font={'color': colors[i]})
+        fig.add_annotation(text=f'<b>R2</b>: {str(round(r2, 2))}</b>', showarrow=False,
+                           x=delta, xshift=0, yshift=i*25 + 250, font={'color': colors[i], 'size': 20})
     fig.update_layout(
-        template='plotly_white',
-        autosize=True,
+        template='simple_white',
+        autosize=False,
+        width=1000, height=850,
         margin=dict(l=50, r=50, b=100, t=100, pad=4),
         paper_bgcolor="white",
         title={
@@ -170,10 +173,13 @@ def update_output_div(_, incidence, exposed_values,
             'y': 0.9,
             'x': 0.5,
             'xanchor': 'center',
-            'yanchor': 'top'})
-    fig.update_layout(legend=dict(orientation="h", yanchor="top", xanchor="left", y=-0.3, x=0))
+            'yanchor': 'top'},
+        font={'size': 19})
+    fig.update_layout(legend=dict(orientation="h", yanchor="top", xanchor="left", y=-0.15, x=0))
     fig.update_xaxes(title_text="Weeks")
     fig.update_yaxes(title_text="Incidence, cases")
+    fig.write_image(f'images/{incidence}_{year}_spb.pdf',
+                    scale=2)
 
     return fig
 

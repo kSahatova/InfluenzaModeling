@@ -99,6 +99,8 @@ class BRModel:
         y = np.zeros((age_groups_num, strains_num, self.N + 1))
         for i in range(age_groups_num):
             y[i, :, 0] = I0[i, :]
+        y[0, 2, 0] = 0
+        y[0, 2, 100] = 1
 
         x = np.zeros((age_groups_num, history_states_num, self.N + 1))
         rho = np.asarray([self.pop_size]).T - I0.sum(axis=1).reshape(age_groups_num, 1)

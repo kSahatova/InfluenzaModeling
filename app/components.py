@@ -3,29 +3,29 @@ from dash import html, dcc, Input, Output, State, ALL, MATCH
 
 multi_strain = {'exposed': [
     html.P('A(H1N1)', style={'margin': '5px 20px'}),
-    dcc.Slider(min=0, max=1, step=0.001, value=0.55,
+    dcc.Slider(min=0, max=1, step=0.0001, value=0.8506601555110365,
                marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 0},
                tooltip={"placement": "bottom", "always_visible": True}),
     html.P('A(H3N2)', style={'margin': '5px 20px'}),
-    dcc.Slider(min=0, max=1, step=0.001, value=0.2,
+    dcc.Slider(min=0, max=1, step=0.0001, value=0.7421101717698981,
                marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 1},
                tooltip={"placement": "bottom", "always_visible": True}),
     html.P('B', style={'margin': '5px 20px'}),
-    dcc.Slider(min=0, max=1, step=0.001, value=0.61,
+    dcc.Slider(min=0, max=1, step=0.0001, value=0.0746,
                marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 2},
                tooltip={"placement": "bottom", "always_visible": True})
 ],
     'lambda': [
         html.P('A(H1N1)', style={'margin': '5px 20px'}),
-        dcc.Slider(min=0, max=1.5, step=0.0001, value=0.19,
+        dcc.Slider(min=0, max=1.5, step=0.0001, value=0.1267,
                    marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 0},
                    tooltip={"placement": "bottom", "always_visible": True}),
         html.P('A(H3N2)', style={'margin': '5px 20px'}),
-        dcc.Slider(min=0, max=1.5, step=0.0001, value=0.06,
+        dcc.Slider(min=0, max=1.5, step=0.0001, value=0.016397451709143314,
                    marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 1},
                    tooltip={"placement": "bottom", "always_visible": True}),
         html.P('B', style={'margin': '5px 20px'}),
-        dcc.Slider(min=0, max=1.5, step=0.0001, value=0.197,
+        dcc.Slider(min=0, max=1.5, step=0.0001, value=0.0765,
                    marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 2},
                    tooltip={"placement": "bottom", "always_visible": True})
     ]
@@ -33,17 +33,17 @@ multi_strain = {'exposed': [
 
 multi_age = {'exposed': [
     html.P('0-14', style={'margin': '5px 20px'}),
-    dcc.Slider(min=0, max=1, step=0.001, value=0.55,
+    dcc.Slider(min=0, max=1, step=0.001, value=0.007,
                marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 0},
                tooltip={"placement": "bottom", "always_visible": True}),
     html.P('15+', style={'margin': '5px 20px'}),
-    dcc.Slider(min=0, max=1, step=0.001, value=0.2,
+    dcc.Slider(min=0, max=1, step=0.001, value=0.8853312143047505,
                marks={0: '0', 1: '1'}, id={'type': 'exposed', 'index': 1},
                tooltip={"placement": "bottom", "always_visible": True})
 ],
     'lambda': [
         html.P('generic', style={'margin': '5px 20px'}),
-        dcc.Slider(min=0, max=1.5, step=0.0001, value=0.19,
+        dcc.Slider(min=0, max=1.5, step=0.0001, value=0.3799998559906729,
                    marks={0: '0', 1.5: '1.5'}, id={'type': 'lambda', 'index': 0},
                    tooltip={"placement": "bottom", "always_visible": True}),
     ],

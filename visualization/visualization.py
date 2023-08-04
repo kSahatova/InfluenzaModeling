@@ -75,16 +75,20 @@ def plot_fitting(original_data: DataFrame,
 
         ax.plot(simulated_data.loc[:last_point_ind, column],
                 label=f'Model fit ({labels[i]})', color=colors[i])
-        if r_squared:
-            r2_plain = f', $R^2(1)$={round(r_squared_plain[i], 2)}' if r_squared_plain else ''
-            plt.text(0.05, 0.5 - (i * 0.08), f"$R^2(1.5)$={round(r_squared[i], 2)}{r2_plain}",
+        if r_squared or r_squared_plain:
+            r2_plain = f'$R^2$={round(r_squared_plain[i], 2)}' if r_squared_plain else ''
+            r2 = f'$R^2$={round(r_squared[i], 2)}' if r_squared else ''
+            r2_text = f"{r2}{r2_plain}"
+            if r_squared and r_squared_plain:
+                r2_text = f"{r2}, {r2_plain}"
+            plt.text(0.05, 0.5 - (i * 0.08), r2_text,
                      fontsize=17, color=colors[i], horizontalalignment='left',
                      verticalalignment='center', transform=ax.transAxes)
 
     plt.title(f'{city}, {year}$-${year + 1}')
     plt.xlabel('Weeks')
     plt.ylabel('Incidence, cases')
-    plt.legend()
+    plt.legend(fontsize="16")
     plt.savefig(file_path, dpi=150, bbox_inches='tight')
     plt.savefig(file_path.replace('.png', '.eps'), dpi=150, bbox_inches='tight')
     plt.savefig(file_path.replace('.png', '.pdf'), dpi=150, bbox_inches='tight')

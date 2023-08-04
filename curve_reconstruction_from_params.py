@@ -39,9 +39,9 @@ def main(output_dir):
 
     file_path_fitting = osp.join(output_dir, f'fit_{incidence}_{city}_{exposure_year}_regenerated.png')
     plot_fitting(orig_data, calib_data, simul_data, city_eng, exposure_year,
-                 file_path_fitting, r_squared=r_squared, r_squared_plain=r2_plain, predict=predict)
+                 file_path_fitting, r_squared=None, r_squared_plain=r2_plain, predict=predict)
 
 
 if __name__ == '__main__':
-    data_dir = 'output/data/strain/ysc_paper/strain_2010_2023_07_26_15_44_mu_0.2_sigma_2.5'
+    data_dir = 'output/data/strain/ysc_paper/strain_2015_2023_07_24_12_05_mu_0.2_sigma_2.5'
     main(data_dir)
