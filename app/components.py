@@ -1,5 +1,5 @@
-import dash
-from dash import html, dcc, Input, Output, State, ALL, MATCH
+from dash import html, dcc
+
 
 multi_strain = {'exposed': [
     html.P('A(H1N1)', style={'margin': '5px 20px'}),
